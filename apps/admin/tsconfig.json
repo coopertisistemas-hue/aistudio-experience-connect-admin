@@ -1,0 +1,13 @@
+{
+  "extends": "@connect/config/typescript/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@connect/core": ["../../packages/core/src"],
+      "@connect/ui": ["../../packages/ui/src"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

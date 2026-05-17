@@ -1,0 +1,20 @@
+{
+  "name": "@connect/config",
+  "version": "0.1.0",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    "./eslint": "./eslint/index.js",
+    "./tailwind": "./tailwind/tailwind.config.ts",
+    "./typescript/base.json": "./typescript/base.json"
+  },
+  "scripts": {
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}

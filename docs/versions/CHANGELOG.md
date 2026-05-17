@@ -1,0 +1,80 @@
+# Changelog — Dom Pietro Experience Connect
+
+> Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+> Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
+
+---
+
+## [v0.3.1-frontend-ready] - 2026-05-16
+
+### Fixed
+- **Harden Boundary:** `expire-booking-hold` Edge Function agora possui validação rigorosa de `service_role` ou privilégios de `admin/operator`.
+- **Auditable RLS Tests:** O runner `test-rls.sh` agora aplica as migrações reais (`schema`, `functions`, `rls`) antes de validar, garantindo que o teste reflete o estado real do banco.
+- **Operational Safety:** Melhoria no tratamento de erros e logs de auditoria para ações críticas.
+
+### Validated
+- **RLS Security:** 49/49 testes de RLS passando contra políticas reais (multi-tenant isolation, role-based access).
+- **Webhook Idempotency:** 5/5 testes de webhook passando (Mercado Pago flow).
+- **Observability:** 7/7 testes de trilha de auditoria e logs de status passando.
+
+### Ready
+- Aprovado para o início da fase **Readdy** (Frontend Foundation).
+- Contratos de API e Banco de Dados considerados estáveis.
+
+---
+
+## [v0.3.0-backend-foundation] - 2026-05-16
+
+### Added
+- **Schema V2 completo:** migração unificada idempotente com 19 tabelas, EXCLUDE constraint, RLS policies, soft deletes, optimistic locking via `lock_version`.
+- **Funções RPC V2:** `create_booking_hold`, `confirm_booking_from_payment`, `cancel_booking`, `expire_booking_hold`, `reschedule_booking`, `process_mp_webhook`, `record_manual_payment`.
+- **Documentação V2:** documentos de arquitetura alinhados com schema V2 (membership model, inventory semantics, payment state source of truth).
+- **Runtime Hardening:** validação completa de RLS (49/49), concorrência (anti-overbooking 100%), webhooks (5/5), observabilidade (7/7).
+- **Edge Functions:** 6 funções implementadas com CORS e OPTIONS handling para compatibilidade browser/PWA.
+- **Scripts de Teste:** suites automatizadas de validação runtime (RLS, concorrência, webhook, observabilidade) alinhadas com V2 semantics.
+- **Seed Data:** Massa de dados completa para o tenant "Dom Pietro" incluindo usuários, frotas, motoristas, pousadas, rotas, parceiros e reservas.
+
+### Changed
+- Estrutura inicial do monorepo com PNPM workspaces + Turbo.
+- Configuração base para apps/web, apps/admin, apps/landing.
+- Packages compartilhados: @connect/ui, @connect/core, @connect/config.
+- Documentação fundacional: FOUNDATION.md, ARCHITECTURE-V1.md, DATABASE-V1.md, ROADMAP-V1.md.
+- Setup inicial do Supabase (migrations, functions, seed).
+- CI/CD base com GitHub Actions.
+- Design tokens iniciais (Tailwind + shadcn/ui).
+- Autenticação base (Supabase Auth).
+
+### Fixed
+- Migrações V2 fragmentadas anteriores (superseded pela migração unificada).
+
+### Security
+- RLS policies usam `is_tenant_member()` com modelo `user_tenants` (V2 membership).
+- Append-only tables (`payment_events`, `booking_status_changes`, `audit_logs`, `webhook_deliveries`) protegidas contra UPDATE/DELETE.
+- `ON DELETE RESTRICT` em todas as tabelas operacionais.
+- Guest-scoped visibility em `payments` (apenas próprios pagamentos) e `users` (próprio perfil + admin/operator visibilidade controlada).
+- `expire_booking_hold` hardening: operational boundary com `p_admin_id`, service_role/internal only via Edge Function.
+
+---
+
+## [0.1.0] — 2026-05-16
+
+### Added
+- **Foundation:** Criação do projeto e estrutura base
+- **Docs:** Documentação técnica completa (arquitetura, banco, roadmap)
+- **Monorepo:** Apps web, admin, landing + packages ui, core, config
+- **Database:** Schema inicial com RLS multi-tenant
+- **Config:** package.json raiz, pnpm-workspace.yaml, .gitignore, Prettier, ESLint
+
+---
+
+## Convenções de Versionamento
+
+Este projeto segue o [SemVer](https://semver.org/lang/pt-BR/):
+
+- **MAJOR:** Mudanças incompatíveis na API ou arquitetura
+- **MINOR:** Adição de funcionalidades mantendo compatibilidade
+- **PATCH:** Correções de bugs e melhorias menores
+
+---
+
+*Última atualização: 2026-05-16*
