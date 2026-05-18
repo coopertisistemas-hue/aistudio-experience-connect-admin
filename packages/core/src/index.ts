@@ -4,3 +4,6 @@
 export * from './supabase/client';
 export * from './types';
 export * from './utils';
+export * from './tenant/scope';
+export * from './edge/client';
+export * from './mutations/optimistic';

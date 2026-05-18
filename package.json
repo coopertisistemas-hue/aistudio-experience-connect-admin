@@ -12,7 +12,10 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev --filter=@connect/web",
+    "dev:web": "turbo run dev --filter=@connect/web",
+    "dev:admin": "turbo run dev --filter=@connect/admin",
+    "dev:landing": "turbo run dev --filter=@connect/landing",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",

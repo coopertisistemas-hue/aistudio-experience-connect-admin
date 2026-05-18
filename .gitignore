@@ -97,3 +97,7 @@ temp/
 *.swp
 *.swo
 *~
+
+# Backups
+*backup*
+*bkp*

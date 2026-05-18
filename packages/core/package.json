@@ -9,10 +9,13 @@
   "exports": {
     ".": "./src/index.ts",
     "./supabase": "./src/supabase/client.ts",
-    "./types": "./src/types/index.ts"
+    "./types": "./src/types/index.ts",
+    "./tenant": "./src/tenant/scope.ts",
+    "./edge": "./src/edge/client.ts",
+    "./mutations": "./src/mutations/optimistic.ts"
   },
   "scripts": {
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },

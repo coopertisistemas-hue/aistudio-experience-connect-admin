@@ -1,25 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.'
-  );
-}
+export type SupabaseClient = ReturnType<typeof createClient<Database>>;
 
 /**
- * Cliente Supabase tipado para uso no frontend.
- * Usar em contexts, hooks e services.
+ * Factory para criar um cliente Supabase tipado.
+ * Cada app deve chamar esta função com suas próprias variáveis de ambiente.
+ *
+ * @example
+ * const supabase = createSupabaseClient(
+ *   import.meta.env.VITE_SUPABASE_URL,
+ *   import.meta.env.VITE_SUPABASE_ANON_KEY
+ * );
  */
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
-
-export type SupabaseClient = typeof supabase;
+export function createSupabaseClient(url: string, anonKey: string): SupabaseClient {
+  if (!url || !anonKey) {
+    throw new Error(
+      '[@connect/core] Missing Supabase URL or Anon Key. Pass valid credentials to createSupabaseClient().'
+    );
+  }
+  return createClient<Database>(url, anonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  });
+}

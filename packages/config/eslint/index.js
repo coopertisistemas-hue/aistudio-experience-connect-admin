@@ -10,6 +10,7 @@ import pluginReactRefresh from 'eslint-plugin-react-refresh';
  * Uso: import connect from '@connect/config/eslint' no seu eslint.config.js
  */
 export default tseslint.config(
+  { ignores: ['**/dist/**', '**/node_modules/**', '**/out/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -45,6 +46,12 @@ export default tseslint.config(
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    files: ['*.config.ts', '*.config.js', '*.config.mjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   }
 );
