@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@connect/core": "workspace:*",
     "@stripe/react-stripe-js": "4.0.2",
     "@supabase/supabase-js": "2.57.4",
     "firebase": "12.0.0",
