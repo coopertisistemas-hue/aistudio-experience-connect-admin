@@ -101,3 +101,5 @@ temp/
 # Backups
 *backup*
 *bkp*
+
+output/
