@@ -4,12 +4,14 @@ import type { TenantId } from '@connect/core/tenant';
 export interface TenantContextValue {
   tenantId: TenantId | null;
   organizationSlug: string | null;
+  userRole: string | null;
   isLoading: boolean;
 }
 
 export const TenantContext = createContext<TenantContextValue>({
   tenantId: null,
   organizationSlug: null,
+  userRole: null,
   isLoading: true,
 });
 

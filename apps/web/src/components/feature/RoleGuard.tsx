@@ -1,17 +1,20 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { useTenant } from '@connect/ui';
 
-interface ProtectedRouteProps {
+interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles?: string[];
+  allowedRoles: string[];
+  fallback?: React.ReactNode;
 }
 
-export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { session, loading: authLoading } = useAuth();
-  const { userRole, isLoading: tenantLoading } = useTenant();
+/**
+ * Guard que verifica se o usuário possui uma das roles permitidas.
+ * Se não possuir, redireciona para '/' ou renderiza o fallback (se fornecido).
+ */
+export default function RoleGuard({ children, allowedRoles, fallback }: RoleGuardProps) {
+  const { userRole, isLoading } = useTenant();
 
-  if (authLoading || tenantLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-sand-50">
         <div className="flex flex-col items-center gap-4">
@@ -23,22 +26,20 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <span className="text-navy-400 text-sm font-light">Verificando acesso...</span>
+            <span className="text-navy-400 text-sm font-light">Verificando permissões...</span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
+  const hasRole = userRole !== null && allowedRoles.includes(userRole);
 
-  if (allowedRoles && allowedRoles.length > 0) {
-    const hasRole = userRole !== null && allowedRoles.includes(userRole);
-    if (!hasRole) {
-      return <Navigate to="/" replace />;
+  if (!hasRole) {
+    if (fallback !== undefined) {
+      return <>{fallback}</>;
     }
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
