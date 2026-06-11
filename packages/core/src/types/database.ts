@@ -927,6 +927,41 @@ export interface Database {
           created_at?: string;
         };
       };
+      invitations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          email: string;
+          role: string;
+          token: string;
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+          created_by: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          email: string;
+          role: string;
+          token: string;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          created_by: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          email?: string;
+          role?: string;
+          token?: string;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          created_by?: string;
+        };
+      };
       booking_status_changes: {
         Row: {
           id: string;
@@ -1049,6 +1084,12 @@ export interface Database {
           required_roles?: string[];
         };
         Returns: boolean;
+      };
+      accept_invite: {
+        Args: {
+          invitation_token: string;
+        };
+        Returns: void;
       };
     };
     Enums: Record<string, never>;

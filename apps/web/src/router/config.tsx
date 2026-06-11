@@ -26,6 +26,7 @@ import CategoriesPage from "@/pages/admin/categories/page";
 import ReceivablesPage from "@/pages/admin/receivables/page";
 import ReconciliationPage from "@/pages/admin/reconciliation/page";
 import NotificationsPage from "@/pages/admin/notifications/page";
+import InvitePage from "@/pages/invite/page";
 
 const routes: RouteObject[] = [
   {
@@ -149,6 +150,10 @@ const routes: RouteObject[] = [
         element: <SettingsPage />,
       },
     ],
+  },
+  {
+    path: "/invite/:token",
+    element: <InvitePage />,
   },
   {
     path: "*",

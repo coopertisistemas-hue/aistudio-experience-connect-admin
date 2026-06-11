@@ -4,16 +4,21 @@ import { supabase } from '@/lib/supabase';
 
 type AuthState = 'idle' | 'loading' | 'error' | 'success';
 type AuthMode = 'login' | 'forgot-password' | 'forgot-sent';
+type LoginTab = 'password' | 'otp';
+type OtpStep = 'email' | 'verify';
 
 export default function AuthCard() {
   const navigate = useNavigate();
 
   // Mode
   const [mode, setMode] = useState<AuthMode>('login');
+  const [loginTab, setLoginTab] = useState<LoginTab>('password');
+  const [otpStep, setOtpStep] = useState<OtpStep>('email');
 
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberSession, setRememberSession] = useState(true);
 
@@ -28,7 +33,7 @@ export default function AuthCard() {
     if (isError) setAuthState('idle');
   };
 
-  /* ── LOGIN ── */
+  /* ── LOGIN (PASSWORD) ── */
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -49,6 +54,56 @@ export default function AuthCard() {
 
     setAuthState('success');
     navigate('/admin');
+  };
+
+  /* ── OTP SEND ── */
+  const handleSendOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setAuthState('error');
+      setErrorMsg('Por favor, insira seu e-mail.');
+      return;
+    }
+    setAuthState('loading');
+    setErrorMsg('');
+
+    const { error } = await supabase.auth.signInWithOtp({ email });
+
+    if (error) {
+      setAuthState('error');
+      setErrorMsg('Não foi possível enviar o código. Tente novamente.');
+      return;
+    }
+
+    setAuthState('idle');
+    setOtpStep('verify');
+  };
+
+  /* ── OTP VERIFY ── */
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email || !otpToken) {
+      setAuthState('error');
+      setErrorMsg('Por favor, preencha o e-mail e o código.');
+      return;
+    }
+    setAuthState('loading');
+    setErrorMsg('');
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otpToken,
+      type: 'magiclink',
+    });
+
+    if (error) {
+      setAuthState('error');
+      setErrorMsg('Código inválido ou expirado. Verifique e tente novamente.');
+      return;
+    }
+
+    setAuthState('success');
+    navigate('/admin/dashboard');
   };
 
   /* ── FORGOT PASSWORD ── */
@@ -222,6 +277,32 @@ export default function AuthCard() {
                 </p>
               </div>
 
+              {/* Tabs */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  type="button"
+                  onClick={() => { setLoginTab('password'); setOtpStep('email'); setAuthState('idle'); setErrorMsg(''); }}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                    loginTab === 'password'
+                      ? 'bg-navy-900 text-white'
+                      : 'bg-sand-100 text-navy-600 hover:bg-sand-200'
+                  }`}
+                >
+                  E-mail e Senha
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginTab('otp'); setOtpStep('email'); setAuthState('idle'); setErrorMsg(''); }}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                    loginTab === 'otp'
+                      ? 'bg-navy-900 text-white'
+                      : 'bg-sand-100 text-navy-600 hover:bg-sand-200'
+                  }`}
+                >
+                  Código Mágico (OTP)
+                </button>
+              </div>
+
               {isError && errorMsg && (
                 <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
                   <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -231,106 +312,226 @@ export default function AuthCard() {
                 </div>
               )}
 
-              <form onSubmit={handleLogin} className="flex flex-col gap-5">
-
-                {/* Email */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="auth-email" className="text-navy-800 text-sm font-medium">E-mail</label>
-                  <div className="relative">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                      <i className="ri-mail-line text-navy-300 text-sm"></i>
+              {/* ── PASSWORD TAB ── */}
+              {loginTab === 'password' && (
+                <form onSubmit={handleLogin} className="flex flex-col gap-5">
+                  {/* Email */}
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="auth-email" className="text-navy-800 text-sm font-medium">E-mail</label>
+                    <div className="relative">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                        <i className="ri-mail-line text-navy-300 text-sm"></i>
+                      </div>
+                      <input
+                        id="auth-email"
+                        type="email"
+                        name="email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); resetError(); }}
+                        placeholder="seu@email.com"
+                        autoComplete="email"
+                        disabled={isLoading}
+                        className={inputClass(isError)}
+                      />
                     </div>
-                    <input
-                      id="auth-email"
-                      type="email"
-                      name="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); resetError(); }}
-                      placeholder="seu@email.com"
-                      autoComplete="email"
-                      disabled={isLoading}
-                      className={inputClass(isError)}
-                    />
                   </div>
-                </div>
 
-                {/* Password */}
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="auth-password" className="text-navy-800 text-sm font-medium">Senha</label>
-                    <button
-                      type="button"
-                      onClick={() => { setMode('forgot-password'); setAuthState('idle'); setErrorMsg(''); }}
-                      className="text-teal-600 hover:text-teal-700 text-xs font-medium transition-colors duration-150 cursor-pointer"
-                    >
-                      Esqueci minha senha
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                      <i className="ri-lock-line text-navy-300 text-sm"></i>
+                  {/* Password */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="auth-password" className="text-navy-800 text-sm font-medium">Senha</label>
+                      <button
+                        type="button"
+                        onClick={() => { setMode('forgot-password'); setAuthState('idle'); setErrorMsg(''); }}
+                        className="text-teal-600 hover:text-teal-700 text-xs font-medium transition-colors duration-150 cursor-pointer"
+                      >
+                        Esqueci minha senha
+                      </button>
                     </div>
-                    <input
-                      id="auth-password"
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); resetError(); }}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      disabled={isLoading}
-                      className={`${inputClass(isError)} pr-11`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isLoading}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-navy-300 hover:text-navy-500 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed"
-                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    >
-                      <i className={`${showPassword ? 'ri-eye-off-line' : 'ri-eye-line'} text-sm`}></i>
-                    </button>
+                    <div className="relative">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                        <i className="ri-lock-line text-navy-300 text-sm"></i>
+                      </div>
+                      <input
+                        id="auth-password"
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); resetError(); }}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        disabled={isLoading}
+                        className={`${inputClass(isError)} pr-11`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isLoading}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-navy-300 hover:text-navy-500 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed"
+                        aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                      >
+                        <i className={`${showPassword ? 'ri-eye-off-line' : 'ri-eye-line'} text-sm`}></i>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Remember session */}
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <div
-                    className={`relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center flex-shrink-0 cursor-pointer ${
-                      rememberSession ? 'bg-teal-600 border-teal-600' : 'border-sand-300 group-hover:border-teal-400 bg-white'
+                  {/* Remember session */}
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div
+                      className={`relative w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center flex-shrink-0 cursor-pointer ${
+                        rememberSession ? 'bg-teal-600 border-teal-600' : 'border-sand-300 group-hover:border-teal-400 bg-white'
+                      }`}
+                      onClick={() => setRememberSession(!rememberSession)}
+                    >
+                      {rememberSession && <i className="ri-check-line text-white text-xs"></i>}
+                    </div>
+                    <input type="checkbox" className="sr-only" checked={rememberSession} onChange={(e) => setRememberSession(e.target.checked)} />
+                    <span className="text-navy-600 text-sm font-light select-none">Manter sessão ativa</span>
+                  </label>
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2.5 mt-1 ${
+                      isLoading ? 'bg-navy-300 text-white cursor-not-allowed' : 'bg-navy-900 hover:bg-navy-800 text-white active:scale-[0.99]'
                     }`}
-                    onClick={() => setRememberSession(!rememberSession)}
                   >
-                    {rememberSession && <i className="ri-check-line text-white text-xs"></i>}
-                  </div>
-                  <input type="checkbox" className="sr-only" checked={rememberSession} onChange={(e) => setRememberSession(e.target.checked)} />
-                  <span className="text-navy-600 text-sm font-light select-none">Manter sessão ativa</span>
-                </label>
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Autenticando...
+                      </>
+                    ) : (
+                      <>
+                        Entrar no Painel
+                        <i className="ri-arrow-right-line text-base"></i>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
 
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2.5 mt-1 ${
-                    isLoading ? 'bg-navy-300 text-white cursor-not-allowed' : 'bg-navy-900 hover:bg-navy-800 text-white active:scale-[0.99]'
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      Autenticando...
-                    </>
-                  ) : (
-                    <>
-                      Entrar no Painel
-                      <i className="ri-arrow-right-line text-base"></i>
-                    </>
+              {/* ── OTP TAB ── */}
+              {loginTab === 'otp' && (
+                <>
+                  {otpStep === 'email' && (
+                    <form onSubmit={handleSendOtp} className="flex flex-col gap-5">
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="otp-email" className="text-navy-800 text-sm font-medium">E-mail</label>
+                        <div className="relative">
+                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                            <i className="ri-mail-line text-navy-300 text-sm"></i>
+                          </div>
+                          <input
+                            id="otp-email"
+                            type="email"
+                            name="email"
+                            value={email}
+                            onChange={(e) => { setEmail(e.target.value); resetError(); }}
+                            placeholder="seu@email.com"
+                            autoComplete="email"
+                            disabled={isLoading}
+                            className={inputClass(isError)}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2.5 mt-1 ${
+                          isLoading ? 'bg-navy-300 text-white cursor-not-allowed' : 'bg-navy-900 hover:bg-navy-800 text-white active:scale-[0.99]'
+                        }`}
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg className="animate-spin w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            Enviar código mágico
+                            <i className="ri-send-plane-line text-base"></i>
+                          </>
+                        )}
+                      </button>
+                    </form>
                   )}
-                </button>
-              </form>
+
+                  {otpStep === 'verify' && (
+                    <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
+                      <div className="flex flex-col gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center mx-auto">
+                          <i className="ri-mail-check-line text-teal-600 text-2xl"></i>
+                        </div>
+                        <p className="text-navy-400 text-sm font-light leading-relaxed text-center">
+                          Código enviado para{' '}
+                          <span className="text-navy-700 font-medium">{email}</span>.
+                          Verifique sua caixa de entrada.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label htmlFor="otp-token" className="text-navy-800 text-sm font-medium">Código de verificação</label>
+                        <div className="relative">
+                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                            <i className="ri-shield-check-line text-navy-300 text-sm"></i>
+                          </div>
+                          <input
+                            id="otp-token"
+                            type="text"
+                            name="otp"
+                            value={otpToken}
+                            onChange={(e) => { setOtpToken(e.target.value); resetError(); }}
+                            placeholder="123456"
+                            autoComplete="one-time-code"
+                            disabled={isLoading}
+                            className={inputClass(isError)}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2.5 mt-1 ${
+                          isLoading ? 'bg-navy-300 text-white cursor-not-allowed' : 'bg-navy-900 hover:bg-navy-800 text-white active:scale-[0.99]'
+                        }`}
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg className="animate-spin w-4 h-4 text-white/70" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Confirmando...
+                          </>
+                        ) : (
+                          <>
+                            Confirmar código
+                            <i className="ri-arrow-right-line text-base"></i>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setOtpStep('email'); setOtpToken(''); setAuthState('idle'); setErrorMsg(''); }}
+                        className="text-center text-teal-600 hover:text-teal-700 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                      >
+                        Reenviar código para outro e-mail
+                      </button>
+                    </form>
+                  )}
+                </>
+              )}
 
               {/* Divider */}
               <div className="flex items-center gap-4 my-7">
