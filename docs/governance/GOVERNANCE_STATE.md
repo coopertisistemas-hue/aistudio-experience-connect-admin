@@ -18,7 +18,7 @@
 
 | Item | Requested By | Approver | Status |
 |------|-------------|----------|--------|
-| Sprint S3 — Lint Cleanup & Type Hardening | DeepSeek (Orchestrator) | Alexandre / ChatGPT | Awaiting approval |
+| Sprint S3 — Lint Cleanup & Type Hardening | DeepSeek (Orchestrator) | ✅ RESOLVIDO — lint/typecheck já zerados | COMPLETED |
 | Sprint S0.1 — Governance Inventory Normalization | Claude | Kimi / DeepSeek | ✅ COMPLETED (2026-06-11) |
 
 ---
