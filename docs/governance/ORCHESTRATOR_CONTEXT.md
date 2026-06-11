@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Status:** ACTIVE  
-**Updated:** 2026-06-11  
+**Updated:** 2026-06-11 (v2)  
 
 ---
 
@@ -62,6 +62,8 @@
 | 2026-06-05 | Sprint S0.2 completed | Migration hardening committed (080c4c7) |
 | 2026-06-06 | DeepSeek Bootstrap v2 deployed | Runtime kernel + auto-resume + execution guard active |
 | 2026-06-11 | Sprint S0.1 completed | Governance inventory report, AGENTS.md, AI_RULES.md, missing dirs created |
+| 2026-06-11 | Sprint 0.1.1 completed | Stripe/firebase removidos, TanStack Query/Zustand/RHF/Zod instalados. Gates: ✅ typecheck, ✅ lint, ✅ build |
+| 2026-06-11 | Sprint 0.1.2 partial | RLS/concurrency tests não executados (PostgreSQL local ausente). Validado em S0.2. |
 
 ---
 
