@@ -90,3 +90,4 @@
 | First Minimax audit validation | Sprint 1.0 or 1.1 | Minimax |
 | Governance compliance check | Every sprint | DeepSeek self-check |
 | Bootstrap validation | Every session start | DeepSeek auto-test |
+| Sprint closure + versioning | Every sprint end | Agy (Git + versioning authority) |
