@@ -102,9 +102,9 @@ The following conditions have been met:
 
 The following risks are **operational in nature** and do **NOT** constitute governance blockers. They must be tracked and remediated during upcoming execution sprints.
 
-### Risk 1: touch_updated_at() Edge Function
+### Risk 1: update_updated_at_column() Function Naming
 
-**Description:** The `touch_updated_at()` function and related timestamp triggers require validation across all Supabase projects to ensure consistent behavior.
+**Description:** The `update_updated_at_column()` function and related timestamp triggers require validation across all Supabase projects to ensure consistent behavior.
 
 **Impact:** Medium — affects data integrity if triggers fail silently
 

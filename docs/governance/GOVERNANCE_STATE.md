@@ -58,7 +58,7 @@
 
 ## Operational Risks (from Transition Report)
 
-1. touch_updated_at() validation — Owner: Codex/Claude — Tracking: Sprint 1.2+
+1. update_updated_at_column() validation — Owner: Codex/Claude — Tracking: Sprint 1.2+
 2. Orphaned edge functions — Owner: Kimi/Gemini — Tracking: Sprint 0.2/Phase 1 cleanup
 3. Duplicated edge functions — Owner: Codex/Minimax — Tracking: Phase 7, Sprint 7.1
 4. Infrastructure visibility validation — Owner: Gemini/ChatGPT — Tracking: Sprint 0.2+

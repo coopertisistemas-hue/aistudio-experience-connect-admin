@@ -278,7 +278,7 @@ aistudio-experience-connect-admin/
 - `trip_incidents` — Ocorrências de viagem
 - `driver_checklists` — Checklist pré-viagem do motorista
 
-**Observação crítica:** A função `touch_updated_at()` (mencionada como risco no GOVERNANCE_STATE e OPERATIONAL_START_RECOMMENDATION) não é a mesma que `update_updated_at_column()` que está na migration. Precisa de verificação — Status: `UNKNOWN`.
+**Observação crítica:** A função `update_updated_at_column()` é a correta (definida em v2_core_schema.sql). A menção a `touch_updated_at()` em docs anteriores era um erro de nomenclatura — Status: `RESOLVED`.
 
 ### 5.8 Autenticação
 
@@ -432,7 +432,7 @@ O `apps/web/src/pages/home/` contém componentes mais elaborados (HeroSection, E
 | DT-03 | TanStack Query, Zustand, RHF, Zod ausentes em apps/web (canônico) | CRITICAL | Live integration impossível sem esses |
 | DT-04 | Docs de governança não commitados (untracked) | ✅ RESOLVED S0.1 | Governança agora no histórico git |
 | DT-05 | Apps admin e landing são stubs sem conteúdo real | MEDIUM | Estratégia a ser definida |
-| DT-06 | `touch_updated_at()` — verificação pendente (mencionada em riscos) | HIGH | Triggers de updated_at podem estar quebrados |
+| DT-06 | `update_updated_at_column()` — verificação concluída (nome correto confirmado vs `touch_updated_at()`) | RESOLVED | Função existe e está em uso em múltiplas tabelas |
 | DT-07 | Nenhum teste unitário (Vitest) em nenhum pacote ou app | HIGH | Qualidade não verificável automaticamente |
 | DT-08 | Playwright E2E inexistente | HIGH | EXECUTION-PLAN-V2 Phase 7 |
 | DT-09 | Frontend de auth não implementa tenant resolution | HIGH | Multi-tenant não funciona no frontend |
@@ -454,7 +454,7 @@ O `apps/web/src/pages/home/` contém componentes mais elaborados (HeroSection, E
 
 | # | Risco | Probabilidade | Impacto | Mitigação |
 |---|-------|--------------|---------|-----------|
-| RT-01 | touch_updated_at() quebrado — dados sem timestamp correto | Médio | Alto | Codex CLI verificar em Sprint 0.1.3 |
+| RT-01 | update_updated_at_column() — nomenclatura corrigida (era touch_updated_at) | Baixo | Médio | RESOLVIDO — OR1 |
 | RT-02 | Stripe SDK conflito com MP SDK (peer deps) | Alto | Médio | Remover Stripe antes de instalar MP SDK |
 | RT-03 | Firebase não gerenciado pode expor chaves | Alto | Alto | Auditar e remover se desnecessário |
 | RT-04 | Sem testes E2E — regressões silenciosas | Alto | Alto | Playwright na Wave 8 |
@@ -565,7 +565,7 @@ O `apps/web/src/pages/home/` contém componentes mais elaborados (HeroSection, E
 | # | Risco | Probabilidade | Impacto | Nível | Dono | Fase de Mitigação |
 |---|-------|:----------:|:------:|:-----:|------|:---------------:|
 | R-01 | Firebase + Stripe instalados incorretamente causam conflito/vazamento | Alto | Alto | **CRÍTICO** | Codex CLI | Wave 0 |
-| R-02 | touch_updated_at() incorreto — dados sem timestamps válidos | Médio | Alto | **ALTO** | Codex CLI | Wave 0 |
+| R-02 | update_updated_at_column() — nomenclatura corrigida (era touch_updated_at) | Baixo | Baixo | **RESOLVIDO** | Kimi | OR1 |
 | R-03 | Tenant context ausente no frontend — cross-tenant data leak UI | Alto | Crítico | **CRÍTICO** | Codex/Kimi | Wave 1 |
 | R-04 | create-payment-preference ausente — sem fluxo de pagamento | Certo | Crítico | **CRÍTICO** | Codex CLI | Wave 4 |
 | R-05 | Sem testes unitários — regressões silenciosas | Alto | Alto | **ALTO** | Codex CLI | Wave 1 |
@@ -846,10 +846,10 @@ DeepSeek DEVE escalar para Claude (Security & Architecture Auditor) quando:
 - **Artefatos:** Commit de governance, package.json limpo
 - **Status:** PENDING
 
-### Sprint 0.1.2 — Verify touch_updated_at & RLS Baseline
+### Sprint 0.1.2 — Verify update_updated_at_column & RLS Baseline
 
 - **Objetivo:** Confirmar que triggers de updated_at funcionam e RLS ainda passa 49/49
-- **Escopo:** Verificar função `update_updated_at_column()` vs menção a `touch_updated_at()` | Re-executar test-rls.sh | Documentar resultado
+- **Escopo:** Confirmar função `update_updated_at_column()` é a correta (nomenclatura já corrigida em OR1) | Re-executar test-rls.sh | Documentar resultado
 - **Agente Recomendado:** Codex CLI
 - **Tarefas:**
   1. Ler migration v2_core_schema.sql — confirmar nome da função de trigger
@@ -857,7 +857,7 @@ DeepSeek DEVE escalar para Claude (Security & Architecture Auditor) quando:
   3. Re-executar `scripts/test-concurrency.sh`
   4. Documentar resultado em `docs/versions/BASELINE-VERIFICATION-2026-06-11.md`
 - **Critérios de Aceite:** test-rls: 49/49 | test-concurrency: 0% overbooking | Documento de evidência criado
-- **Riscos:** RT-02 — touch_updated_at() não existe (diferente de update_updated_at_column)
+- **Riscos:** RT-02 — RESOLVIDO (nomenclatura corrigida em OR1)
 - **Dependências:** Sprint 0.1.1 (build limpo)
 - **Artefatos:** BASELINE-VERIFICATION doc, log dos testes
 - **Status:** PENDING
@@ -1562,7 +1562,7 @@ A governança é madura e funcional: DEEPSEEK.md v1.0 com 9 seções de hardenin
 ### Quais sprints podem começar imediatamente?
 
 - **Sprint 0.1.1** — Commit governance docs + fix critical deps (Gemini + Codex CLI)
-- **Sprint 0.1.2** — Verificar touch_updated_at + re-executar RLS tests (Codex CLI)
+- **Sprint 0.1.2** — Verificar update_updated_at_column + re-executar RLS tests (Codex CLI) — RESOLVIDO (OR1)
 
 Esses dois sprints têm todas as entradas disponíveis e não requerem decisões de Alexandre.
 

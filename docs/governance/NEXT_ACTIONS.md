@@ -61,6 +61,15 @@
 
 ---
 
+### Action 7 — R3 Deferred: DB RPC Seat-Release Duplication
+**Priority:** P3 — TECHNICAL DEBT  
+**Owner:** Deferred  
+**Descrição:** DB RPC seat-release logic duplicada em 3 edge functions. Baixo risco operacional. Deferido para sprint futuro — sem impacto imediato em produção.
+**Dependências:** Nenhuma
+**Repo:** `aistudio-experience-connect-admin`
+
+---
+
 ## Summary Matrix
 
 | # | Action | Priority | Complexity | Dependencies |

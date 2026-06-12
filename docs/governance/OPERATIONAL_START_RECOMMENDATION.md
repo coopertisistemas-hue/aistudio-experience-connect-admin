@@ -39,7 +39,7 @@ Minimax audit layer is defined and approved. Agent roles are clear. The executio
 
 The ecosystem retains **5 operational risks** that do not block governance but must be actively tracked and remediated:
 
-1. **touch_updated_at() validation** — requires technical verification across Supabase projects
+1. **update_updated_at_column() validation** — requires technical verification across Supabase projects
 2. **Orphaned edge functions** — requires cleanup to reduce security surface area
 3. **Duplicated edge functions** — requires consolidation for maintainability
 4. **Infrastructure visibility validation** — requires CDN/DNS/SSL configuration audit

@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  supabase:
+    image: supabase/supabase-local:v2
+    ports:
+      - "54321:54321"
+      - "54322:54322"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
