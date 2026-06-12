@@ -62,9 +62,9 @@
 ---
 
 ### Action 7 — R3 Deferred: DB RPC Seat-Release Duplication
-**Priority:** P3 — TECHNICAL DEBT  
-**Owner:** Deferred  
-**Descrição:** DB RPC seat-release logic duplicada em 3 edge functions. Baixo risco operacional. Deferido para sprint futuro — sem impacto imediato em produção.
+**Priority:** P3 — COMPLETED  
+**Owner:** Kimi  
+**Descrição:** ✅ COMPLETED — Seat-release logic extraída para função compartilhada `release_slot_capacity`. `cancel_booking`, `expire_booking_hold` e `reschedule_booking` refatoradas.
 **Dependências:** Nenhuma
 **Repo:** `aistudio-experience-connect-admin`
 
@@ -80,3 +80,4 @@
 | 4 | Resolve governance conflict | P1 | S | Action 2 |
 | 5 | Resolve external deps | P1 | S | Action 2 |
 | 6 | Fase 1 Core | P2 | XL | Action 3 |
+| 7 | R3: DB RPC Seat-Release Duplication | P3 | M | ✅ COMPLETED |
