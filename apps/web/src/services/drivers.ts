@@ -74,10 +74,10 @@ export const driverService = {
     return mapToDisplay(data as any);
   },
 
-  async create(data: any): Promise<DriverRow | null> {
+  async create(data: any, tenantId: string): Promise<DriverRow | null> {
     const { data: result, error } = await (supabase as any)
       .from('drivers')
-      .insert(data)
+      .insert({ ...data, tenant_id: tenantId })
       .select()
       .single();
 
@@ -89,11 +89,12 @@ export const driverService = {
     return result;
   },
 
-  async update(id: string, data: any): Promise<DriverRow | null> {
+  async update(id: string, data: any, tenantId: string): Promise<DriverRow | null> {
     const { data: result, error } = await (supabase as any)
       .from('drivers')
       .update(data)
       .eq('id', id)
+      .eq('tenant_id', tenantId)
       .select()
       .single();
 

@@ -25,6 +25,7 @@ export interface ManualPaymentInput {
   booking_id: string;
   amount: number;
   reason: string;
+  admin_id: string;
 }
 
 export interface PaymentTimelineEvent {
@@ -214,7 +215,7 @@ export const paymentService = {
     })('record_manual_payment', {
       p_tenant_id: input.tenant_id,
       p_booking_id: input.booking_id,
-      p_admin_id: '',
+      p_admin_id: input.admin_id,
       p_amount: input.amount,
       p_reason: input.reason,
     });

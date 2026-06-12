@@ -21,7 +21,7 @@ export function useCreateDriver() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Parameters<typeof driverService.create>[0]) => driverService.create(data),
+    mutationFn: ({ data, tenantId }: { data: any; tenantId: string }) => driverService.create(data, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drivers'] });
     },
@@ -32,8 +32,8 @@ export function useUpdateDriver() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof driverService.update>[1] }) =>
-      driverService.update(id, data),
+    mutationFn: ({ id, data, tenantId }: { id: string; data: any; tenantId: string }) =>
+      driverService.update(id, data, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drivers'] });
       queryClient.invalidateQueries({ queryKey: ['driver'] });

@@ -1,8 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAgenda, useAgendaDrivers } from '@/hooks/useAgenda';
 import { useCancelBooking } from '@/hooks/useBookings';
 import type { AgendaItem, AgendaStatus } from '@/services/agenda';
+
+interface Notification {
+  type: 'success' | 'info' | 'error';
+  message: string;
+}
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
 import AgendaSummaryStrip from './components/AgendaSummaryStrip';
 import AgendaFilterBar, { type AgendaFilters } from './components/AgendaFilterBar';
@@ -59,6 +64,7 @@ export default function AgendaPage() {
   const [filters, setFilters] = useState<AgendaFilters>(defaultFilters);
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   const todayDate = useMemo(() => new Date(), []);
 
@@ -77,6 +83,12 @@ export default function AgendaPage() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!notification) return;
+    const t = setTimeout(() => setNotification(null), 4000);
+    return () => clearTimeout(t);
+  }, [notification]);
 
   const goToToday = () => setCurrentDate(new Date());
   const goToPrev = () => setCurrentDate((d) => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; });
@@ -112,7 +124,7 @@ export default function AgendaPage() {
       {
         onSuccess: () => setSelectedItem(null),
         onError: () => {
-          window.alert('Erro ao cancelar reserva. Tente novamente.');
+          setNotification({ type: 'error', message: 'Erro ao cancelar reserva. Tente novamente.' });
         },
       },
     );
@@ -121,12 +133,12 @@ export default function AgendaPage() {
   const handleAssignDriver = (id: string) => {
     const booking = dayItems.find((i) => i.id === id);
     if (booking) {
-      window.alert('Atribuir motorista — funcionalidade em desenvolvimento.\nEm breve: seleção de motorista disponível.');
+      setNotification({ type: 'info', message: 'Atribuir motorista — funcionalidade em desenvolvimento. Em breve: seleção de motorista disponível.' });
     }
   };
 
   const handleReschedule = (id: string) => {
-    window.alert('Reagendar — funcionalidade em desenvolvimento.\nEm breve: calendário com seleção de novo horário.');
+    setNotification({ type: 'info', message: 'Reagendar — funcionalidade em desenvolvimento. Em breve: calendário com seleção de novo horário.' });
   };
 
   const handleViewBooking = (id: string) => {
@@ -344,6 +356,32 @@ export default function AgendaPage() {
           onReschedule={handleReschedule}
           onViewBooking={handleViewBooking}
         />
+      )}
+
+      {/* Notification toast */}
+      {notification && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+          <div
+            className={`flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-medium shadow-lg pointer-events-auto ${
+              notification.type === 'error'
+                ? 'bg-red-50 text-red-800 border border-red-200'
+                : notification.type === 'info'
+                ? 'bg-navy-950 text-white'
+                : 'bg-teal-50 text-teal-800 border border-teal-200'
+            }`}
+          >
+            <i
+              className={`text-base ${
+                notification.type === 'error'
+                  ? 'ri-error-warning-line text-red-500'
+                  : notification.type === 'info'
+                  ? 'ri-information-line text-teal-400'
+                  : 'ri-checkbox-circle-line text-teal-500'
+              }`}
+            ></i>
+            {notification.message}
+          </div>
+        </div>
       )}
     </div>
   );

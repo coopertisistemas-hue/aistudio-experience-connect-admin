@@ -141,10 +141,10 @@ export const routeService = {
     };
   },
 
-  async create(data: any): Promise<RouteRow | null> {
+  async create(data: any, tenantId: string): Promise<RouteRow | null> {
     const { data: result, error } = await (supabase as any)
       .from('routes')
-      .insert(data)
+      .insert({ ...data, tenant_id: tenantId })
       .select()
       .single();
 
@@ -156,11 +156,12 @@ export const routeService = {
     return result;
   },
 
-  async update(id: string, data: any): Promise<RouteRow | null> {
+  async update(id: string, data: any, tenantId: string): Promise<RouteRow | null> {
     const { data: result, error } = await (supabase as any)
       .from('routes')
       .update(data)
       .eq('id', id)
+      .eq('tenant_id', tenantId)
       .select()
       .single();
 

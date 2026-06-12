@@ -73,14 +73,16 @@ export default function NovoMotoristaForm({ onClose, onSave }: NovoMotoristaForm
     setSaveError(null);
     try {
       await createDriver.mutateAsync({
-        tenant_id: tenantId,
-        name: form.fullName,
-        email: form.email || null,
-        phone: form.phone || null,
-        license_type: form.licenseType,
-        default_vehicle_id: form.vehicle || null,
-        notes: notes || null,
-        status: 'pending',
+        data: {
+          name: form.fullName,
+          email: form.email || null,
+          phone: form.phone || null,
+          license_type: form.licenseType,
+          default_vehicle_id: form.vehicle || null,
+          notes: notes || null,
+          status: 'pending',
+        },
+        tenantId,
       });
       setSaving(false);
       onSave(withInvite);

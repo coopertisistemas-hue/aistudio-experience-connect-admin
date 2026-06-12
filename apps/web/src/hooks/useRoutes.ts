@@ -21,7 +21,7 @@ export function useCreateRoute() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Parameters<typeof routeService.create>[0]) => routeService.create(data),
+    mutationFn: ({ data, tenantId }: { data: any; tenantId: string }) => routeService.create(data, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes'] });
     },
@@ -32,8 +32,8 @@ export function useUpdateRoute() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof routeService.update>[1] }) =>
-      routeService.update(id, data),
+    mutationFn: ({ id, data, tenantId }: { id: string; data: any; tenantId: string }) =>
+      routeService.update(id, data, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes'] });
       queryClient.invalidateQueries({ queryKey: ['route'] });

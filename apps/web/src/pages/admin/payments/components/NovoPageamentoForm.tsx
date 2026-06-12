@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRecordManualPayment } from '@/hooks/usePayments';
 
 interface NovoPageamentoFormProps {
@@ -29,6 +30,8 @@ const methodOptions: { value: string; label: string; icon: string; desc: string 
 const bookingRefs = ['BK-0051', 'BK-0050', 'BK-0049', 'BK-0048', 'BK-0047', 'BK-0046', 'BK-0045'];
 
 export default function NovoPageamentoForm({ onClose, onSave, tenantId }: NovoPageamentoFormProps) {
+  const { user } = useAuth();
+  const adminId = user?.id || '';
   const [activeSection, setActiveSection] = useState<Section>('reserva');
   const [method, setMethod] = useState('');
   const [notesLen, setNotesLen] = useState(0);
@@ -240,6 +243,7 @@ export default function NovoPageamentoForm({ onClose, onSave, tenantId }: NovoPa
                   booking_id: bookingId,
                   amount: Number(amount),
                   reason: notes || 'Pagamento manual',
+                  admin_id: adminId,
                 }).then(() => {
                   setSaving(false);
                   onSave(false);
@@ -263,6 +267,7 @@ export default function NovoPageamentoForm({ onClose, onSave, tenantId }: NovoPa
                   booking_id: bookingId,
                   amount: Number(amount),
                   reason: notes || 'Pagamento manual confirmado',
+                  admin_id: adminId,
                 }).then(() => {
                   setSaving(false);
                   onSave(true);

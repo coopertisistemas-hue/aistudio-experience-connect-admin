@@ -106,17 +106,19 @@ export default function NovaRotaForm({ onClose, onSuccess }: NovaRotaFormProps) 
     setSaving(true);
     try {
       await createRoute.mutateAsync({
-        tenant_id: tenantId,
-        name: form.name,
-        slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
-        origin: form.origin_name,
-        destination: form.destination_name,
-        distance_km: Number(form.distance_km),
-        duration_min: Number(form.duration_min),
-        base_price: Number(form.base_price),
-        is_active: form.status === 'active',
-        category_id: categoryMap[form.category] || null,
-        operational_notes: form.notes || null,
+        data: {
+          name: form.name,
+          slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
+          origin: form.origin_name,
+          destination: form.destination_name,
+          distance_km: Number(form.distance_km),
+          duration_min: Number(form.duration_min),
+          base_price: Number(form.base_price),
+          is_active: form.status === 'active',
+          category_id: categoryMap[form.category] || null,
+          operational_notes: form.notes || null,
+        },
+        tenantId,
       } as any);
       onSuccess?.();
       onClose();
@@ -131,17 +133,19 @@ export default function NovaRotaForm({ onClose, onSuccess }: NovaRotaFormProps) 
     setSaving(true);
     try {
       await createRoute.mutateAsync({
-        tenant_id: tenantId,
-        name: form.name,
-        slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
-        origin: form.origin_name,
-        destination: form.destination_name,
-        distance_km: Number(form.distance_km),
-        duration_min: Number(form.duration_min),
-        base_price: Number(form.base_price),
-        is_active: false,
-        category_id: categoryMap[form.category] || null,
-        operational_notes: form.notes || null,
+        data: {
+          name: form.name,
+          slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
+          origin: form.origin_name,
+          destination: form.destination_name,
+          distance_km: Number(form.distance_km),
+          duration_min: Number(form.duration_min),
+          base_price: Number(form.base_price),
+          is_active: false,
+          category_id: categoryMap[form.category] || null,
+          operational_notes: form.notes || null,
+        },
+        tenantId,
       } as any);
       onSuccess?.();
       onClose();
