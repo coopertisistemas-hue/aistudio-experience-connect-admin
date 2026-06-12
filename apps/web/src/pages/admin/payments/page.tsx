@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useRealtime } from '@connect/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { usePayments, usePaymentStats } from '@/hooks/usePayments';
 import type { PaymentStatus } from '@connect/core';
 
 type FilterStatus = PaymentStatus | 'overdue' | 'partial' | 'cancelled' | 'all';
-import type { PaymentFilters } from '@/services/payments';
+import type { PaymentFilters, PaymentWithDetails } from '@/services/payments';
 import PaymentsSummaryStrip from './components/PaymentsSummaryStrip';
 import PaymentsFilterBar from './components/PaymentsFilterBar';
 import PaymentsList from './components/PaymentsList';
@@ -33,10 +36,28 @@ function LoadingSkeleton() {
 }
 
 export default function PaymentsPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
 
-  const [selected, setSelected] = useState<any>(null);
+  useRealtime(supabase as any, {
+    table: 'payments',
+    event: 'UPDATE',
+    onChange: () => {
+      queryClient.invalidateQueries({ queryKey: ['payments', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['paymentStats', tenantId] });
+    },
+  });
+
+  useRealtime(supabase as any, {
+    table: 'payments',
+    event: 'INSERT',
+    onChange: () => {
+      queryClient.invalidateQueries({ queryKey: ['paymentStats', tenantId] });
+    },
+  });
+
+  const [selected, setSelected] = useState<PaymentWithDetails | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [toastCounter, setToastCounter] = useState(0);

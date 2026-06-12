@@ -1,11 +1,15 @@
 import { supabase } from '@/lib/supabase';
 import { invokeEdgeFunction } from '@connect/core';
-import { withTenant, injectTenant } from '@connect/core';
-import type { Database, PaymentStatus, TenantId } from '@connect/core';
+import { withTenant } from '@connect/core';
+import type { Database, PaymentStatus } from '@connect/core';
 
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
 type BookingRow = Database['public']['Tables']['bookings']['Row'];
 type UserRow = Database['public']['Tables']['users']['Row'];
+type PaymentJoinRow = PaymentRow & {
+  bookings: BookingRow | null;
+  users: UserRow | null;
+};
 
 export interface PaymentFilters {
   search?: string;
@@ -127,7 +131,7 @@ export const paymentService = {
         users!payments_user_id_fkey(*)
       `, { count: 'exact' });
 
-    query = withTenant(query as any, tenantId) as typeof query;
+    query = withTenant(query, tenantId);
 
     if (filters?.status && filters.status !== 'all') {
       query = query.eq('status', filters.status);
@@ -152,11 +156,11 @@ export const paymentService = {
       return { data: [], total: 0 };
     }
 
-    const mapped = (data || []).map((row: any) =>
+    const mapped = (data || []).map((row: PaymentJoinRow) =>
       mapPaymentToDetails(
-        row as PaymentRow,
-        row.bookings as BookingRow | null,
-        row.users as UserRow | null,
+        row,
+        row.bookings,
+        row.users,
       ),
     );
 
@@ -180,19 +184,19 @@ export const paymentService = {
       return null;
     }
 
-    const row = data as any;
+    const row = data as unknown as PaymentJoinRow;
     return mapPaymentToDetails(
-      row as PaymentRow,
-      row.bookings as BookingRow | null,
-      row.users as UserRow | null,
+      row,
+      row.bookings,
+      row.users,
     );
   },
 
-  async createPreference(bookingHoldId: string): Promise<{ preference_id: string; init_point: string } | null> {
-    const { data, error } = await invokeEdgeFunction<{ preference_id: string; init_point: string }>(
-      supabase as any,
+  async createPreference(bookingHoldId: string): Promise<{ payment_id: string; preference_id: string; init_point: string; expires_at?: string } | null> {
+    const { data, error } = await invokeEdgeFunction<{ payment_id: string; preference_id: string; init_point: string; expires_at?: string }>(
+      supabase,
       'create-payment-preference',
-      { booking_hold_id: bookingHoldId } as any,
+      { booking_hold_id: bookingHoldId },
     );
 
     if (error || !data) {
@@ -204,7 +208,10 @@ export const paymentService = {
   },
 
   async recordManual(input: ManualPaymentInput): Promise<string | null> {
-    const result = await (supabase.rpc as any)('record_manual_payment', {
+    type RecordManualPaymentArgs = Database['public']['Functions']['record_manual_payment']['Args'];
+    const { data, error } = await (supabase.rpc as unknown as {
+      (fn: 'record_manual_payment', args: RecordManualPaymentArgs): Promise<{ data: string | null; error: unknown }>;
+    })('record_manual_payment', {
       p_tenant_id: input.tenant_id,
       p_booking_id: input.booking_id,
       p_admin_id: '',
@@ -212,14 +219,12 @@ export const paymentService = {
       p_reason: input.reason,
     });
 
-    const { data, error } = result;
-
     if (error) {
       console.error('[paymentService.recordManual]', error);
       return null;
     }
 
-    return data as string;
+    return data;
   },
 
   async getStats(tenantId: string): Promise<PaymentStats> {
@@ -243,7 +248,7 @@ export const paymentService = {
       };
     }
 
-    const all: PaymentRow[] = (payments as any) || [];
+    const all: PaymentRow[] = payments ?? [];
     const paid = all.filter((p) => p.status === 'completed' || p.status === 'paid');
     const pending = all.filter((p) => p.status === 'pending');
     const overdue = all.filter((p) => p.status === 'overdue');

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePaymentPolling } from '@/hooks/usePaymentPolling';
 import type { PaymentWithDetails } from '@/services/payments';
 
 interface PaymentDetailDrawerProps {
@@ -63,7 +64,13 @@ function fmtDateTime(dt: string | null | undefined) {
 
 export default function PaymentDetailDrawer({ payment: p, onClose, onToast }: PaymentDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabId>('pagamento');
-  const sc = statusConfig[p.status];
+  const { status: liveStatus } = usePaymentPolling({
+    paymentId: p.status === 'pending' ? p.id : null,
+    tenantId: p.tenant_id,
+    intervalMs: 5000,
+  });
+  const displayStatus = liveStatus ?? p.status;
+  const sc = statusConfig[displayStatus] ?? statusConfig.pending;
 
   const timelineColors: Record<string, string> = {
     teal: 'bg-teal-500', navy: 'bg-[#1e3a5f]', amber: 'bg-amber-400', red: 'bg-red-400', stone: 'bg-stone-400',

@@ -22,8 +22,10 @@ export function useCreatePaymentPreference() {
 
   return useMutation({
     mutationFn: (bookingHoldId: string) => paymentService.createPreference(bookingHoldId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    onSuccess: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['payments'] });
+      }
     },
   });
 }

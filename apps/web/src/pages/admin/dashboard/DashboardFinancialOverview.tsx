@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { usePaymentStats } from '@/hooks/usePayments';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { withTenant } from '@connect/core';
+import { useRealtime } from '@connect/ui';
 
 const CASHFLOW = [
   { label: 'Mai 17', collected: 2890, pending: 520 },
@@ -20,8 +21,18 @@ function fmt(n: number) {
 }
 
 export default function DashboardFinancialOverview() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  useRealtime(supabase as any, {
+    table: 'payments',
+    event: '*',
+    onChange: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-payments', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['paymentStats', tenantId] });
+    },
+  });
 
   const { data: payments } = useQuery({
     queryKey: ['dashboard-payments', tenantId],

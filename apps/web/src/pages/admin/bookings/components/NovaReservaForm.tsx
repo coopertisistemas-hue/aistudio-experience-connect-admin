@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCreateBookingHold } from '@/hooks/useBookings';
+import { useCreatePaymentPreference } from '@/hooks/usePayments';
 
 interface NovaReservaFormProps {
   onClose: () => void;
@@ -91,7 +92,11 @@ export default function NovaReservaForm({ onClose, onSave, tenantId }: NovaReser
   const [errors, setErrors] = useState<FormErrors>({});
   const [activeSection, setActiveSection] = useState('dados');
   const [saving, setSaving] = useState(false);
+  const [paymentData, setPaymentData] = useState<{ payment_id: string; init_point: string; preference_id: string } | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [creatingPayment, setCreatingPayment] = useState(false);
   const createHold = useCreateBookingHold();
+  const createPaymentPreference = useCreatePaymentPreference();
 
   const set = (key: keyof FormData, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -131,8 +136,10 @@ export default function NovaReservaForm({ onClose, onSave, tenantId }: NovaReser
       return;
     }
     setSaving(true);
+    setPaymentData(null);
+    setPaymentError(null);
     try {
-      await createHold.mutateAsync({
+      const holdResult = await createHold.mutateAsync({
         tenant_id: tenantId,
         vehicle_slot_id: '',
         passenger_count: Number(form.passenger_count) || 1,
@@ -142,7 +149,26 @@ export default function NovaReservaForm({ onClose, onSave, tenantId }: NovaReser
         dropoff_location: form.dropoff_location || undefined,
         notes: form.notes || undefined,
       });
-      onSave();
+
+      if (!form.payment_method || form.payment_method === 'payment_link') {
+        setCreatingPayment(true);
+        try {
+          const prefResult = await createPaymentPreference.mutateAsync(holdResult?.hold_id || '');
+          if (prefResult) {
+            setPaymentData({
+              payment_id: prefResult.payment_id,
+              init_point: prefResult.init_point,
+              preference_id: prefResult.preference_id,
+            });
+          }
+        } catch {
+          setPaymentError('Erro ao criar link de pagamento. A reserva foi salva, mas o pagamento não foi gerado.');
+        } finally {
+          setCreatingPayment(false);
+        }
+      } else {
+        onSave();
+      }
     } catch {
       setErrors((e) => ({ ...e, _form: 'Erro ao criar reserva. Tente novamente.' }));
     } finally {
@@ -554,6 +580,92 @@ export default function NovaReservaForm({ onClose, onSave, tenantId }: NovaReser
           </button>
         </div>
       </div>
+
+      {/* Payment options modal */}
+      {(paymentData || creatingPayment || paymentError) && (
+        <div className="fixed inset-0 bg-navy-950/40 z-[60] backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-teal-50 border border-teal-200">
+                <i className="ri-secure-payment-line text-teal-600 text-lg"></i>
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-semibold text-navy-950">Pagamento</h3>
+                <p className="text-navy-400 text-xs">Reserva criada com sucesso</p>
+              </div>
+            </div>
+
+            {creatingPayment && (
+              <div className="flex flex-col items-center py-8 gap-3">
+                <i className="ri-loader-4-line animate-spin text-3xl text-teal-500"></i>
+                <p className="text-navy-600 text-sm font-medium">Gerando link de pagamento...</p>
+              </div>
+            )}
+
+            {paymentError && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <p className="text-amber-800 text-sm font-medium flex items-center gap-2">
+                  <i className="ri-alert-line"></i>
+                  {paymentError}
+                </p>
+              </div>
+            )}
+
+            {paymentData && (
+              <div className="space-y-4">
+                <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+                  <p className="text-teal-700 text-sm font-medium mb-1">Link de Pagamento Gerado</p>
+                  <p className="text-navy-400 text-xs">Envie este link para o cliente pagar via Mercado Pago</p>
+                </div>
+
+                <a
+                  href={paymentData.init_point}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                >
+                  <i className="ri-external-link-line"></i>
+                  Abrir Link de Pagamento
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(paymentData.init_point);
+                  }}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-navy-950 hover:bg-navy-900 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer"
+                >
+                  <i className="ri-clipboard-line"></i>
+                  Copiar Link
+                </button>
+              </div>
+            )}
+
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                onClick={onSave}
+                className="flex-1 py-2.5 bg-white hover:bg-sand-100 text-navy-600 text-sm font-medium rounded-xl border border-sand-200 transition-colors cursor-pointer"
+              >
+                {paymentData || paymentError ? 'Ir para Reservas' : 'Fechar'}
+              </button>
+              {paymentData && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentData(null);
+                    setPaymentError(null);
+                    setCreatingPayment(false);
+                  }}
+                  className="flex-1 py-2.5 bg-sand-100 hover:bg-sand-200 text-navy-700 text-sm font-medium rounded-xl transition-colors cursor-pointer"
+                >
+                  Continuar Editando
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

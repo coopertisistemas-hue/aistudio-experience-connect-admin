@@ -134,6 +134,21 @@ export default async (req: Request): Promise<Response> => {
 
     const isDuplicate = !data;
 
+    // If payment approved, confirm the booking
+    if (eventType === 'confirmed' && !isDuplicate) {
+      const confirmIdempotencyKey = `confirm-${paymentRow.booking_id}-${paymentRow.id}-${Date.now()}`;
+      const { error: confirmError } = await adminClient.rpc('confirm_booking_from_payment', {
+        p_tenant_id: paymentRow.tenant_id,
+        p_booking_id: paymentRow.booking_id,
+        p_payment_id: paymentRow.id,
+        p_idempotency_key: confirmIdempotencyKey,
+      });
+
+      if (confirmError) {
+        console.error('confirm_booking_from_payment RPC error:', confirmError);
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, duplicate: isDuplicate, correlation_id: correlationId }),
       {

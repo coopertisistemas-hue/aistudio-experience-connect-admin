@@ -9,9 +9,6 @@ const CORS_HEADERS = {
 
 interface CreatePreferenceRequest {
   booking_hold_id: string;
-  amount: number;
-  description: string;
-  payer_email: string;
   idempotency_key?: string;
 }
 
@@ -46,11 +43,11 @@ export default async (req: Request): Promise<Response> => {
     return new Response('Invalid JSON', { status: 400, headers: CORS_HEADERS });
   }
 
-  const { booking_hold_id, amount, description, payer_email, idempotency_key } = body;
+  const { booking_hold_id, idempotency_key } = body;
 
-  if (!booking_hold_id || !amount || !description) {
+  if (!booking_hold_id) {
     return new Response(
-      JSON.stringify({ error: 'Missing required fields: booking_hold_id, amount, description' }),
+      JSON.stringify({ error: 'Missing required field: booking_hold_id' }),
       { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
     );
   }
@@ -59,13 +56,14 @@ export default async (req: Request): Promise<Response> => {
   const idempotencyKey = idempotency_key || crypto.randomUUID();
   const { data: existingPreference } = await adminClient
     .from('payment_preferences')
-    .select('preference_id, init_point')
+    .select('preference_id, init_point, payment_id')
     .eq('idempotency_key', idempotencyKey)
     .single();
 
   if (existingPreference) {
     return new Response(
       JSON.stringify({
+        payment_id: existingPreference.payment_id,
         preference_id: existingPreference.preference_id,
         init_point: existingPreference.init_point,
         cached: true,
@@ -74,10 +72,10 @@ export default async (req: Request): Promise<Response> => {
     );
   }
 
-  // Fetch booking hold for tenant context
+  // Fetch booking hold for tenant context and booking_id
   const { data: hold, error: holdError } = await adminClient
     .from('booking_holds')
-    .select('tenant_id, vehicle_id, passenger_count, seat_count')
+    .select('tenant_id, booking_id, vehicle_id, passenger_count, seat_count, expires_at')
     .eq('id', booking_hold_id)
     .single();
 
@@ -89,7 +87,65 @@ export default async (req: Request): Promise<Response> => {
     );
   }
 
+  if (!hold.booking_id) {
+    console.error('Booking hold has no associated booking_id');
+    return new Response(
+      JSON.stringify({ error: 'Booking hold has no booking' }),
+      { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+    );
+  }
+
+  // Fetch booking for amount and user_id
+  const { data: booking, error: bookingError } = await adminClient
+    .from('bookings')
+    .select('total_amount, user_id, pickup_location, dropoff_location')
+    .eq('id', hold.booking_id)
+    .single();
+
+  if (bookingError || !booking) {
+    console.error('Booking not found:', bookingError);
+    return new Response(
+      JSON.stringify({ error: 'Associated booking not found' }),
+      { status: 404, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+    );
+  }
+
+  // Fetch user for payer email
+  const { data: user } = await adminClient
+    .from('users')
+    .select('email, full_name')
+    .eq('id', booking.user_id)
+    .single();
+
+  const description = `Transfer ${hold.vehicle_id ? `- ${hold.passenger_count} pax` : ''} ${booking.pickup_location ? `${booking.pickup_location} → ${booking.dropoff_location || ''}` : ''}`.trim();
+
   try {
+    // Step 1: Create payments row (status = 'pending')
+    const paymentId = crypto.randomUUID();
+    const { error: insertPaymentError } = await adminClient
+      .from('payments')
+      .insert({
+        id: paymentId,
+        tenant_id: hold.tenant_id,
+        booking_id: hold.booking_id,
+        user_id: booking.user_id,
+        provider: 'mercado_pago',
+        amount: booking.total_amount,
+        currency: 'BRL',
+        status: 'pending',
+        idempotency_key: idempotencyKey,
+        metadata: { booking_hold_id },
+      });
+
+    if (insertPaymentError) {
+      console.error('Failed to create payment row:', insertPaymentError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create payment record' }),
+        { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Step 2: Create Mercado Pago Preference with payments.id as external_reference
     const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
     const preference = new Preference(client);
 
@@ -100,15 +156,17 @@ export default async (req: Request): Promise<Response> => {
             id: booking_hold_id,
             title: description,
             quantity: 1,
-            unit_price: amount,
+            unit_price: booking.total_amount,
             currency_id: 'BRL',
           },
         ],
         payer: {
-          email: payer_email || '',
+          email: user?.email || '',
         },
         metadata: {
           booking_hold_id,
+          booking_id: hold.booking_id,
+          payment_id: paymentId,
           tenant_id: hold.tenant_id,
         },
         back_urls: {
@@ -117,36 +175,42 @@ export default async (req: Request): Promise<Response> => {
           pending: `${Deno.env.get('PUBLIC_APP_URL') || ''}/payment/pending`,
         },
         auto_return: 'approved',
-        external_reference: booking_hold_id,
+        external_reference: paymentId,
       },
     });
 
     const preferenceId = result.id!;
     const initPoint = result.init_point || result.sandbox_init_point || '';
 
-    // Store preference in database
+    // Step 3: Store preference in database
     const { error: insertError } = await adminClient
       .from('payment_preferences')
       .insert({
         id: crypto.randomUUID(),
         tenant_id: hold.tenant_id,
         booking_hold_id,
+        payment_id: paymentId,
         preference_id: preferenceId,
         init_point: initPoint,
-        amount,
+        amount: booking.total_amount,
         description,
-        payer_email: payer_email || null,
+        payer_email: user?.email || null,
         idempotency_key: idempotencyKey,
         status: 'pending',
         created_at: new Date().toISOString(),
-      } as any);
+      });
 
     if (insertError) {
       console.error('Failed to store payment preference:', insertError);
     }
 
     return new Response(
-      JSON.stringify({ preference_id: preferenceId, init_point: initPoint }),
+      JSON.stringify({
+        payment_id: paymentId,
+        preference_id: preferenceId,
+        init_point: initPoint,
+        expires_at: hold.expires_at,
+      }),
       {
         status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
