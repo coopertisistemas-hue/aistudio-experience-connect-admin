@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { Home } from '@/pages/Home';
 import { NotFound } from '@/pages/NotFound';
+import { RouteDetail } from '@/pages/RouteDetail';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -24,6 +25,14 @@ function App() {
           element={
             <Layout>
               <Home />
+            </Layout>
+          }
+        />
+        <Route
+          path="/roteiro/:slug"
+          element={
+            <Layout>
+              <RouteDetail />
             </Layout>
           }
         />

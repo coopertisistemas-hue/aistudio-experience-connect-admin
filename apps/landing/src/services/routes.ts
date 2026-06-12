@@ -3,6 +3,7 @@ import type { Database } from '@connect/core';
 
 type RouteRow = Database['public']['Tables']['routes']['Row'];
 type RouteCategoryRow = Database['public']['Tables']['route_categories']['Row'];
+type VehicleSlotRow = Database['public']['Tables']['vehicle_slots']['Row'];
 
 interface RouteWithCategoryRow extends RouteRow {
   route_categories: RouteCategoryRow | null;
@@ -13,6 +14,7 @@ export interface RouteWithCategory {
   name: string;
   slug: string;
   short_description: string | null;
+  full_description: string | null;
   origin: string | null;
   destination: string | null;
   distance_km: number | null;
@@ -25,6 +27,18 @@ export interface RouteWithCategory {
   category_slug: string | null;
   category_color: string | null;
   created_at: string;
+}
+
+export interface SlotInfo {
+  id: string;
+  time: string;
+  remaining_seats: number;
+  total_capacity: number;
+}
+
+export interface AvailabilityResult {
+  date: string;
+  slots: SlotInfo[];
 }
 
 export interface RouteFilters {
@@ -43,6 +57,7 @@ function mapRoute(
     name: row.name,
     slug: row.slug,
     short_description: row.short_description,
+    full_description: row.full_description,
     origin: row.origin,
     destination: row.destination,
     distance_km: row.distance_km,
@@ -120,5 +135,44 @@ export const publicRoutesService = {
 
     const row = data as unknown as RouteWithCategoryRow;
     return mapRoute(row, row.route_categories);
+  },
+
+  async getAvailability(
+    date: string
+  ): Promise<AvailabilityResult> {
+    const startOfDay = `${date}T00:00:00`;
+    const endOfDay = `${date}T23:59:59`;
+
+    const { data, error } = await supabase
+      .from('vehicle_slots')
+      .select('id, slot_start, remaining_seats, total_capacity')
+      .gte('slot_start', startOfDay)
+      .lte('slot_start', endOfDay)
+      .gt('remaining_seats', 0)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .order('slot_start');
+
+    if (error) {
+      console.error('[publicRoutesService.getAvailability]', error);
+      throw error;
+    }
+
+    const rows = (data ?? []) as unknown as Pick<
+      VehicleSlotRow,
+      'id' | 'slot_start' | 'remaining_seats' | 'total_capacity'
+    >[];
+
+    const slots: SlotInfo[] = rows.map((row) => ({
+      id: row.id,
+      time: new Date(row.slot_start).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      remaining_seats: row.remaining_seats,
+      total_capacity: row.total_capacity,
+    }));
+
+    return { date, slots };
   },
 };

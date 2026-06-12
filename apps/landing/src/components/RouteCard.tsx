@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import type { RouteWithCategory } from '@/services/routes';
 
 interface RouteCardProps {
@@ -22,7 +24,10 @@ function formatDuration(min: number | null): string | null {
 
 export function RouteCard({ route }: RouteCardProps) {
   return (
-    <div className="group rounded-xl bg-white/5 border border-white/10 overflow-hidden hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+    <Link
+      to={`/roteiro/${route.slug}`}
+      className="block group rounded-xl bg-white/5 border border-white/10 overflow-hidden hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300"
+    >
       <div className="h-40 bg-gradient-to-br from-emerald-900/40 to-slate-800 flex items-center justify-center">
         {route.images && typeof route.images === 'object' && 'url' in route.images ? (
           <img
@@ -75,12 +80,12 @@ export function RouteCard({ route }: RouteCardProps) {
               </p>
             )}
           </div>
-          <span className="text-sm text-slate-400 hover:text-emerald-400 transition-colors">
+          <span className="text-sm text-slate-400 group-hover:text-emerald-400 transition-colors">
             Ver detalhes &rarr;
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
