@@ -92,6 +92,7 @@ function NotFoundState() {
 export function RouteDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [selectedDate, setSelectedDate] = useState('');
+  const [selectedSlotId, setSelectedSlotId] = useState('');
 
   const {
     data: route,
@@ -339,19 +340,25 @@ export function RouteDetail() {
                       </div>
                     ) : availability && availability.slots.length > 0 ? (
                       <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {availability.slots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="flex items-center justify-between rounded-lg bg-slate-800/50 border border-white/5 px-4 py-2.5"
+                        {availability.slots.map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSlotId(selectedSlotId === s.id ? '' : s.id);
+                            }}
+                            className={`w-full flex items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all ${
+                              selectedSlotId === s.id
+                                ? 'bg-emerald-500/10 border-emerald-500 text-white'
+                                : 'bg-slate-800/50 border-white/5 text-slate-300 hover:border-emerald-500/50'
+                            }`}
                           >
-                            <span className="text-sm text-white font-medium">
-                              {slot.time}
-                            </span>
+                            <span className="font-medium">{s.time}</span>
                             <span className="text-xs text-slate-400">
-                              {slot.remaining_seats} vaga
-                              {slot.remaining_seats !== 1 ? 's' : ''}
+                              {s.remaining_seats} vaga
+                              {s.remaining_seats !== 1 ? 's' : ''}
                             </span>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     ) : (
@@ -369,13 +376,12 @@ export function RouteDetail() {
                 )}
 
                 <div className="pt-2 space-y-3">
-                  <button
-                    disabled
-                    className="w-full inline-flex items-center justify-center rounded-lg bg-emerald-500/50 px-6 py-3 text-sm font-semibold text-white/50 cursor-not-allowed"
-                    title="Em breve"
+                  <Link
+                    to={`/roteiro/${route.slug}/reservar${selectedDate ? `?date=${selectedDate}&slot=${selectedSlotId}` : ''}`}
+                    className="w-full inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-colors"
                   >
                     Reservar Online
-                  </button>
+                  </Link>
                   <a
                     href={whatsappUrl}
                     target="_blank"

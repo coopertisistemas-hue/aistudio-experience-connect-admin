@@ -5,6 +5,9 @@ import { Header } from '@/components/Header';
 import { Home } from '@/pages/Home';
 import { NotFound } from '@/pages/NotFound';
 import { RouteDetail } from '@/pages/RouteDetail';
+import { Booking } from '@/pages/Booking';
+import { BookingConfirm } from '@/pages/BookingConfirm';
+import { BookingStatus } from '@/pages/BookingStatus';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,6 +36,30 @@ function App() {
           element={
             <Layout>
               <RouteDetail />
+            </Layout>
+          }
+        />
+        <Route
+          path="/roteiro/:slug/reservar"
+          element={
+            <Layout>
+              <Booking />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reserva/:bookingId/confirmacao"
+          element={
+            <Layout>
+              <BookingConfirm />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reserva/:bookingId"
+          element={
+            <Layout>
+              <BookingStatus />
             </Layout>
           }
         />
