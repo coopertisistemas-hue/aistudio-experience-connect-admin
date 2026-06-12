@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import type { MockCustomer, CustomerPreference } from '@/mocks/admin-customers';
+import type { CustomerDisplay } from '@/services/customers';
+import type { CustomerPreference } from '@/mocks/admin-customers';
 import { preferenceLabels, preferenceIcons } from '@/mocks/admin-customers';
 
 interface CustomerDetailDrawerProps {
-  customer: MockCustomer | null;
+  customer: CustomerDisplay | null;
   onClose: () => void;
   onNewBooking: () => void;
 }
@@ -19,27 +20,27 @@ const tabs: { key: Tab; label: string; icon: string }[] = [
   { key: 'observacoes', label: 'Observações', icon: 'ri-sticky-note-line' },
 ];
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; bg: string; text: string; border: string; dot: string; icon: string }> = {
   vip: { label: 'VIP', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500', icon: 'ri-vip-crown-line' },
   active: { label: 'Ativo', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-500', icon: 'ri-checkbox-circle-line' },
   inactive: { label: 'Inativo', bg: 'bg-stone-100', text: 'text-stone-500', border: 'border-stone-200', dot: 'bg-stone-400', icon: 'ri-pause-circle-line' },
 };
 
-const bookingStatusConfig = {
+const bookingStatusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
   confirmed: { label: 'Confirmado', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
   completed: { label: 'Concluído', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
   cancelled: { label: 'Cancelado', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
   pending: { label: 'Pendente', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
 };
 
-const payStatusConfig = {
+const payStatusConfig: Record<string, { label: string; text: string }> = {
   paid: { label: 'Pago', text: 'text-teal-700' },
   pending: { label: 'Pendente', text: 'text-amber-600' },
   overdue: { label: 'Vencido', text: 'text-red-600' },
   refunded: { label: 'Estornado', text: 'text-stone-500' },
 };
 
-const prefColors: Record<CustomerPreference, string> = {
+const prefColors: Record<string, string> = {
   aeroporto: 'bg-sky-50 text-sky-700 border-sky-200',
   hotel: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   executivo: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -51,7 +52,7 @@ const prefColors: Record<CustomerPreference, string> = {
   bagagem_extra: 'bg-stone-50 text-stone-600 border-stone-200',
 };
 
-const journeyColors = {
+const journeyColors: Record<string, { dot: string; line: string; text: string; icon: string }> = {
   teal: { dot: 'bg-teal-500', line: 'bg-teal-200', text: 'text-teal-700', icon: 'text-teal-500' },
   navy: { dot: 'bg-slate-600', line: 'bg-slate-200', text: 'text-slate-700', icon: 'text-slate-500' },
   amber: { dot: 'bg-amber-400', line: 'bg-amber-200', text: 'text-amber-700', icon: 'text-amber-500' },
@@ -86,7 +87,7 @@ export default function CustomerDetailDrawer({ customer, onClose, onNewBooking }
 
   if (!customer) return null;
 
-  const st = statusConfig[customer.status];
+  const st = statusConfig[customer.status] || statusConfig.active;
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -223,8 +224,8 @@ export default function CustomerDetailDrawer({ customer, onClose, onNewBooking }
               </div>
 
               {customer.recent_bookings.map((bk) => {
-                const bst = bookingStatusConfig[bk.status];
-                const pst = payStatusConfig[bk.payment_status];
+                const bst = bookingStatusConfig[bk.status] || bookingStatusConfig.pending;
+                const pst = payStatusConfig[bk.payment_status] || payStatusConfig.pending;
                 return (
                   <div key={bk.id} className="bg-stone-50 border border-stone-200 rounded-xl p-4">
                     <div className="flex items-start justify-between gap-3">
@@ -287,7 +288,7 @@ export default function CustomerDetailDrawer({ customer, onClose, onNewBooking }
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Por Reserva</p>
                 {customer.recent_bookings.map((bk) => {
-                  const pst = payStatusConfig[bk.payment_status];
+                  const pst = payStatusConfig[bk.payment_status] || payStatusConfig.pending;
                   return (
                     <div key={bk.id} className="flex items-center gap-3 py-2.5 border-b border-stone-100 last:border-0">
                       <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-stone-100">
@@ -327,10 +328,10 @@ export default function CustomerDetailDrawer({ customer, onClose, onNewBooking }
                 {customer.preferences.map((pref) => (
                   <span
                     key={pref}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border ${prefColors[pref]}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border ${prefColors[pref] || 'bg-stone-50 text-stone-600 border-stone-200'}`}
                   >
-                    <i className={`${preferenceIcons[pref]} text-sm`}></i>
-                    {preferenceLabels[pref]}
+                    <i className={`${preferenceIcons[pref as CustomerPreference] || 'ri-star-line'} text-sm`}></i>
+                    {preferenceLabels[pref as CustomerPreference] || pref}
                   </span>
                 ))}
                 {customer.preferences.length === 0 && (
@@ -361,33 +362,36 @@ export default function CustomerDetailDrawer({ customer, onClose, onNewBooking }
             <div className="space-y-3">
               <p className="text-xs font-bold uppercase tracking-wider text-stone-500">Linha do Tempo</p>
 
-              <div className="relative pl-6">
-                {customer.journey.map((ev, idx) => {
-                  const cl = journeyColors[ev.color];
-                  const isLast = idx === customer.journey.length - 1;
-                  return (
-                    <div key={ev.id} className="relative pb-5">
-                      {/* Line */}
-                      {!isLast && (
-                        <div className={`absolute left-0 top-3 bottom-0 w-px ${cl.line} -translate-x-1/2`}></div>
-                      )}
-                      {/* Dot */}
-                      <div className={`absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 border-white ${cl.dot} -translate-x-1/2 shadow-sm`}></div>
-
-                      <div className="pl-4">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <i className={`${ev.icon} text-sm ${cl.icon}`}></i>
-                          <p className={`text-xs font-semibold ${cl.text}`}>{ev.label}</p>
+              {customer.journey.length > 0 ? (
+                <div className="relative pl-6">
+                  {customer.journey.map((ev: any, idx: number) => {
+                    const cl = journeyColors[ev.color] || journeyColors.stone;
+                    const isLast = idx === customer.journey.length - 1;
+                    return (
+                      <div key={ev.id} className="relative pb-5">
+                        {!isLast && (
+                          <div className={`absolute left-0 top-3 bottom-0 w-px ${cl.line} -translate-x-1/2`}></div>
+                        )}
+                        <div className={`absolute left-0 top-1.5 w-3 h-3 rounded-full border-2 border-white ${cl.dot} -translate-x-1/2 shadow-sm`}></div>
+                        <div className="pl-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <i className={`${ev.icon} text-sm ${cl.icon}`}></i>
+                            <p className={`text-xs font-semibold ${cl.text}`}>{ev.label}</p>
+                          </div>
+                          <p className="text-[11px] text-stone-500 mt-0.5">{ev.description}</p>
+                          <p className="text-[10px] text-stone-400 mt-1">{fmtDateTime(ev.at)}</p>
                         </div>
-                        <p className="text-[11px] text-stone-500 mt-0.5">{ev.description}</p>
-                        <p className="text-[10px] text-stone-400 mt-1">{fmtDateTime(ev.at)}</p>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="bg-stone-50 border border-dashed border-stone-300 rounded-xl py-10 flex flex-col items-center gap-2">
+                  <i className="ri-route-line text-stone-300 text-xl"></i>
+                  <p className="text-xs text-stone-400">Jornada do cliente será populada com os próximos eventos.</p>
+                </div>
+              )}
 
-              {/* Member since */}
               <div className="bg-teal-50 border border-teal-100 rounded-xl p-3.5 flex items-center gap-2.5">
                 <i className="ri-user-heart-line text-teal-500 text-sm"></i>
                 <div>

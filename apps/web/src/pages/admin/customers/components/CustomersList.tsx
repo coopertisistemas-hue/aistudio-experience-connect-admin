@@ -1,19 +1,20 @@
-import type { MockCustomer, CustomerPreference } from '@/mocks/admin-customers';
+import type { CustomerDisplay } from '@/services/customers';
+import type { CustomerPreference } from '@/mocks/admin-customers';
 import { preferenceLabels, preferenceIcons } from '@/mocks/admin-customers';
 
 interface CustomersListProps {
-  customers: MockCustomer[];
-  onSelect: (c: MockCustomer) => void;
+  customers: CustomerDisplay[];
+  onSelect: (c: CustomerDisplay) => void;
   loading?: boolean;
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; bg: string; text: string; border: string; dot: string; icon: string }> = {
   vip: { label: 'VIP', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500', icon: 'ri-vip-crown-line' },
   active: { label: 'Ativo', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-500', icon: 'ri-checkbox-circle-line' },
   inactive: { label: 'Inativo', bg: 'bg-stone-50', text: 'text-stone-500', border: 'border-stone-200', dot: 'bg-stone-400', icon: 'ri-pause-circle-line' },
 };
 
-const prefColors: Record<CustomerPreference, string> = {
+const prefColors: Record<string, string> = {
   aeroporto: 'bg-sky-50 text-sky-700 border-sky-200',
   hotel: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   executivo: 'bg-slate-100 text-slate-700 border-slate-200',
@@ -96,7 +97,7 @@ export default function CustomersList({ customers, onSelect, loading }: Customer
   return (
     <div className="space-y-2.5">
       {customers.map((c) => {
-        const st = statusConfig[c.status];
+        const st = statusConfig[c.status] || statusConfig.active;
         const visiblePrefs = c.preferences.slice(0, 3);
         const extraPrefs = c.preferences.length - visiblePrefs.length;
 
@@ -147,10 +148,10 @@ export default function CustomersList({ customers, onSelect, loading }: Customer
                     {visiblePrefs.map((pref) => (
                       <span
                         key={pref}
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${prefColors[pref]}`}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${prefColors[pref] || prefColors.aeroporto}`}
                       >
-                        <i className={`${preferenceIcons[pref]} text-[10px]`}></i>
-                        {preferenceLabels[pref]}
+                        <i className={`${preferenceIcons[pref as CustomerPreference] || 'ri-star-line'} text-[10px]`}></i>
+                        {preferenceLabels[pref as CustomerPreference] || pref}
                       </span>
                     ))}
                     {extraPrefs > 0 && (

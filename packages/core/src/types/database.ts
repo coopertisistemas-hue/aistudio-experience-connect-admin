@@ -7,8 +7,8 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+  | { [key: string]: unknown }
+  | unknown[];
 
 export interface Database {
   public: {
@@ -278,6 +278,10 @@ export interface Database {
           name: string;
           slug: string;
           description: string | null;
+          icon: string;
+          color: string;
+          visibility: string;
+          tags: Json;
           sort_order: number;
           is_active: boolean;
           deleted_at: string | null;
@@ -290,6 +294,10 @@ export interface Database {
           name: string;
           slug: string;
           description?: string | null;
+          icon?: string;
+          color?: string;
+          visibility?: string;
+          tags?: Json;
           sort_order?: number;
           is_active?: boolean;
           deleted_at?: string | null;
@@ -302,6 +310,10 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          icon?: string;
+          color?: string;
+          visibility?: string;
+          tags?: Json;
           sort_order?: number;
           is_active?: boolean;
           deleted_at?: string | null;
@@ -314,14 +326,15 @@ export interface Database {
           id: string;
           tenant_id: string;
           category_id: string | null;
+          partner_id: string | null;
           name: string;
           slug: string;
           short_description: string | null;
           full_description: string | null;
           origin: string | null;
           destination: string | null;
-          origin_coords: unknown | null;
-          destination_coords: unknown | null;
+origin_coords: Json | null;
+destination_coords: Json | null;
           distance_km: number | null;
           duration_min: number | null;
           base_price: number;
@@ -338,14 +351,15 @@ export interface Database {
           id?: string;
           tenant_id: string;
           category_id?: string | null;
+          partner_id?: string | null;
           name: string;
           slug: string;
           short_description?: string | null;
           full_description?: string | null;
           origin?: string | null;
           destination?: string | null;
-          origin_coords?: unknown | null;
-          destination_coords?: unknown | null;
+          origin_coords?: Json | null;
+          destination_coords?: Json | null;
           distance_km?: number | null;
           duration_min?: number | null;
           base_price: number;
@@ -362,14 +376,15 @@ export interface Database {
           id?: string;
           tenant_id?: string;
           category_id?: string | null;
+          partner_id?: string | null;
           name?: string;
           slug?: string;
           short_description?: string | null;
           full_description?: string | null;
           origin?: string | null;
           destination?: string | null;
-          origin_coords?: unknown | null;
-          destination_coords?: unknown | null;
+          origin_coords?: Json | null;
+          destination_coords?: Json | null;
           distance_km?: number | null;
           duration_min?: number | null;
           base_price?: number;
@@ -390,10 +405,15 @@ export interface Database {
           partner_type: string;
           name: string;
           contact_name: string | null;
+          contact_email: string;
           phone: string | null;
           whatsapp: string | null;
           address: string | null;
+          city: string;
+          state: string;
+          country: string;
           notes: string | null;
+          tags: Json;
           status: string;
           deleted_at: string | null;
           created_at: string;
@@ -405,10 +425,15 @@ export interface Database {
           partner_type: string;
           name: string;
           contact_name?: string | null;
+          contact_email?: string;
           phone?: string | null;
           whatsapp?: string | null;
           address?: string | null;
+          city?: string;
+          state?: string;
+          country?: string;
           notes?: string | null;
+          tags?: Json;
           status?: string;
           deleted_at?: string | null;
           created_at?: string;
@@ -420,10 +445,15 @@ export interface Database {
           partner_type?: string;
           name?: string;
           contact_name?: string | null;
+          contact_email?: string;
           phone?: string | null;
           whatsapp?: string | null;
           address?: string | null;
+          city?: string;
+          state?: string;
+          country?: string;
           notes?: string | null;
+          tags?: Json;
           status?: string;
           deleted_at?: string | null;
           created_at?: string;

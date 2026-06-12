@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useCreateCategory } from '@/hooks/useCategories';
 
 interface Props {
   onClose: () => void;
   onSuccess: () => void;
+  tenantId: string;
 }
 
 const ICON_OPTIONS = [
@@ -26,21 +28,33 @@ const COLOR_BG: Record<string, string> = {
   wine: 'bg-rose-600', slate: 'bg-slate-600', amber: 'bg-amber-500', sky: 'bg-sky-500',
 };
 
-export default function NovaCategoriaForm({ onClose, onSuccess }: Props) {
+export default function NovaCategoriaForm({ onClose, onSuccess, tenantId }: Props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('ri-compass-discover-line');
   const [color, setColor] = useState('teal');
   const [visibility, setVisibility] = useState<'visible' | 'hidden'>('visible');
   const [errors, setErrors] = useState<{ name?: string }>({});
-  const [saving, setSaving] = useState(false);
+  const { mutate: createCategory, isPending: saving } = useCreateCategory();
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!name.trim()) { setErrors({ name: 'Nome obrigatório' }); return; }
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    onSuccess();
+
+    createCategory({
+      tenant_id: tenantId,
+      name: name.trim(),
+      slug: name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      description: description.trim() || null,
+      sort_order: 99,
+      is_active: true,
+      icon,
+      color,
+      visibility,
+      tags: [],
+    }, {
+      onSuccess: () => onSuccess(),
+      onError: () => {},
+    });
   };
 
   return (
@@ -132,7 +146,7 @@ export default function NovaCategoriaForm({ onClose, onSuccess }: Props) {
             <h3 className="text-[11px] font-bold text-stone-500 uppercase tracking-widest mb-3">Pré-visualização</h3>
             <div className="bg-white border border-stone-200 rounded-xl p-4 flex items-center gap-3">
               <div className={`w-10 h-10 flex items-center justify-center rounded-xl ${COLOR_BG[color]}/10 border border-stone-200 flex-shrink-0`}>
-                <i className={`${icon} text-base`} style={{ color: '' }}></i>
+                <i className={`${icon} text-base`}></i>
               </div>
               <div>
                 <p className="text-sm font-semibold text-stone-800">{name || 'Nome da categoria'}</p>

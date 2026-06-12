@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import type { PartnerType } from '@/mocks/admin-experiences';
-import { partnerTypeLabels } from '@/mocks/admin-experiences';
+import { partnerTypeLabels } from '@/services/partners';
+import { useCreatePartner } from '@/hooks/usePartners';
 
 interface Props {
   onClose: () => void;
   onSuccess: (draft?: boolean) => void;
+  tenantId: string;
 }
 
 interface FormData {
   name: string;
-  type: PartnerType | '';
+  type: string;
   contact_name: string;
   contact_email: string;
   contact_phone: string;
@@ -29,12 +30,12 @@ const EMPTY: FormData = {
   notes: '',
 };
 
-const PARTNER_TYPES: PartnerType[] = ['hotel', 'pousada', 'agencia', 'guia', 'experiencia', 'operador_turistico'];
+const PARTNER_TYPES = ['hotel', 'pousada', 'agencia', 'guia', 'experiencia', 'operador_turistico'];
 
-export default function NovoParceiroForm({ onClose, onSuccess }: Props) {
+export default function NovoParceiroForm({ onClose, onSuccess, tenantId }: Props) {
   const [form, setForm] = useState<FormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [saving, setSaving] = useState<'idle' | 'saving' | 'draft'>('idle');
+  const { mutate: createPartner, isPending: saving } = useCreatePartner();
 
   const set = (k: keyof FormData, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -52,10 +53,22 @@ export default function NovoParceiroForm({ onClose, onSuccess }: Props) {
 
   const handleSave = async (draft = false) => {
     if (!draft && !validate()) return;
-    setSaving(draft ? 'draft' : 'saving');
-    await new Promise((r) => setTimeout(r, 900));
-    setSaving('idle');
-    onSuccess(draft);
+
+    createPartner({
+      tenant_id: tenantId,
+      name: form.name,
+      partner_type: form.type,
+      contact_name: form.contact_name || null,
+      contact_email: form.contact_email,
+      phone: form.contact_phone || null,
+      city: form.city || null,
+      state: form.state || null,
+      notes: form.notes || null,
+      status: draft ? 'inactive' : 'active',
+    }, {
+      onSuccess: () => onSuccess(draft),
+      onError: () => {},
+    });
   };
 
   return (
@@ -167,13 +180,13 @@ export default function NovoParceiroForm({ onClose, onSuccess }: Props) {
           <button type="button" onClick={onClose} className="h-9 px-4 bg-white hover:bg-stone-100 text-stone-600 text-sm font-medium rounded-xl border border-stone-200 transition-colors cursor-pointer whitespace-nowrap">
             Cancelar
           </button>
-          <button type="button" onClick={() => handleSave(true)} disabled={saving !== 'idle'}
+          <button type="button" onClick={() => handleSave(true)} disabled={saving}
             className="h-9 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-xl border border-stone-200 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-60">
-            {saving === 'draft' ? 'Salvando...' : 'Salvar rascunho'}
+            {saving ? 'Salvando...' : 'Salvar rascunho'}
           </button>
-          <button type="button" onClick={() => handleSave(false)} disabled={saving !== 'idle'}
+          <button type="button" onClick={() => handleSave(false)} disabled={saving}
             className="flex-1 h-9 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer whitespace-nowrap disabled:opacity-60">
-            {saving === 'saving' ? 'Salvando...' : 'Salvar'}
+            {saving ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
       </aside>

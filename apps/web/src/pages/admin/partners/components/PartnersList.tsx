@@ -1,20 +1,20 @@
-import type { MockPartner, PartnerStatus, PartnerType } from '@/mocks/admin-experiences';
-import { partnerTypeLabels } from '@/mocks/admin-experiences';
+import { partnerTypeLabels } from '@/services/partners';
+import type { PartnerDisplay } from '@/services/partners';
 
 interface Props {
-  partners: MockPartner[];
-  onSelect: (p: MockPartner) => void;
+  partners: PartnerDisplay[];
+  onSelect: (p: PartnerDisplay) => void;
   selectedId?: string;
   loading?: boolean;
 }
 
-const STATUS_STYLES: Record<PartnerStatus, { bg: string; text: string; dot: string }> = {
+const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
   active:   { bg: 'bg-teal-50 border-teal-200',   text: 'text-teal-700',  dot: 'bg-teal-500' },
   paused:   { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500' },
   inactive: { bg: 'bg-stone-100 border-stone-200',text: 'text-stone-500', dot: 'bg-stone-400' },
 };
 
-const TYPE_ICONS: Record<PartnerType, string> = {
+const TYPE_ICONS: Record<string, string> = {
   hotel:               'ri-hotel-line',
   pousada:             'ri-home-heart-line',
   agencia:             'ri-building-2-line',
@@ -65,7 +65,7 @@ export default function PartnersList({ partners, onSelect, selectedId, loading }
   return (
     <div className="space-y-3">
       {partners.map((p, idx) => {
-        const s = STATUS_STYLES[p.status];
+        const s = STATUS_STYLES[p.status] || STATUS_STYLES.inactive;
         const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length];
         const initials = p.name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
         const isSelected = selectedId === p.id;
@@ -92,9 +92,9 @@ export default function PartnersList({ partners, onSelect, selectedId, loading }
                   </span>
                   <span className="flex items-center gap-1 text-[11px] text-stone-500 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full flex-shrink-0">
                     <div className="w-3 h-3 flex items-center justify-center">
-                      <i className={`${TYPE_ICONS[p.type]} text-[10px]`}></i>
+                      <i className={`${TYPE_ICONS[p.type] || 'ri-building-line'} text-[10px]`}></i>
                     </div>
-                    {partnerTypeLabels[p.type]}
+                    {partnerTypeLabels[p.type] || p.type}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-stone-500 flex-wrap">

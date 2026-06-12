@@ -1,9 +1,8 @@
-import type { MockCategory, DemandLevel, CategoryVisibility } from '@/mocks/admin-experiences';
-import { demandLabels } from '@/mocks/admin-experiences';
+import type { CategoryDisplay } from '@/services/categories';
 
 interface Props {
-  categories: MockCategory[];
-  onSelect: (c: MockCategory) => void;
+  categories: CategoryDisplay[];
+  onSelect: (c: CategoryDisplay) => void;
   selectedId?: string;
 }
 
@@ -17,13 +16,13 @@ const COLOR_MAP: Record<string, { ring: string; bg: string; icon: string; text: 
   sky:     { ring: 'border-sky-300',    bg: 'bg-sky-500/10',    icon: 'text-sky-600',    text: 'text-sky-700' },
 };
 
-const DEMAND_STYLES: Record<DemandLevel, { text: string; icon: string; label: string }> = {
+const DEMAND_STYLES: Record<string, { text: string; icon: string; label: string }> = {
   high:   { text: 'text-red-500',   icon: 'ri-arrow-up-line',    label: 'Alta demanda' },
   medium: { text: 'text-amber-500', icon: 'ri-subtract-line',    label: 'Demanda média' },
   low:    { text: 'text-stone-400', icon: 'ri-arrow-down-line',  label: 'Baixa demanda' },
 };
 
-const VIS_STYLES: Record<CategoryVisibility, { text: string; bg: string; label: string }> = {
+const VIS_STYLES: Record<string, { text: string; bg: string; label: string }> = {
   visible: { text: 'text-teal-700', bg: 'bg-teal-50 border-teal-200', label: 'Visível' },
   hidden:  { text: 'text-stone-500',bg: 'bg-stone-100 border-stone-200',label: 'Oculta' },
 };
@@ -45,8 +44,8 @@ export default function CategoriesGrid({ categories, onSelect, selectedId }: Pro
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {categories.map((cat) => {
         const c = COLOR_MAP[cat.color] ?? COLOR_MAP.teal;
-        const d = DEMAND_STYLES[cat.demand];
-        const v = VIS_STYLES[cat.visibility];
+        const d = DEMAND_STYLES[cat.demand] ?? DEMAND_STYLES.medium;
+        const v = VIS_STYLES[cat.visibility] ?? VIS_STYLES.visible;
         const isSelected = selectedId === cat.id;
 
         return (

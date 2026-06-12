@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useCreateCustomer } from '@/hooks/useCustomers';
 import type { CustomerPreference } from '@/mocks/admin-customers';
 import { preferenceLabels, preferenceIcons } from '@/mocks/admin-customers';
 
 interface NovoClienteFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  tenantId: string;
 }
 
 const allPreferences: CustomerPreference[] = [
@@ -55,10 +57,10 @@ const sections: { key: Section; label: string; icon: string }[] = [
   { key: 'observacoes', label: 'Observações', icon: 'ri-sticky-note-line' },
 ];
 
-export default function NovoClienteForm({ onClose, onSuccess }: NovoClienteFormProps) {
+export default function NovoClienteForm({ onClose, onSuccess, tenantId }: NovoClienteFormProps) {
   const [form, setForm] = useState<FormState>(initialState);
-  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const { mutate: createCustomer, isPending: saving } = useCreateCustomer();
 
   const update = (key: keyof FormState, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -86,8 +88,24 @@ export default function NovoClienteForm({ onClose, onSuccess }: NovoClienteFormP
   const handleSave = () => {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
-    setSaving(true);
-    setTimeout(() => { setSaving(false); onSuccess(); }, 900);
+
+    createCustomer({
+      id: crypto.randomUUID(),
+      email: form.email,
+      phone: form.phone,
+      full_name: form.name,
+      status: 'active',
+      preferences: form.preferences,
+      metadata: {
+        document: form.document || undefined,
+        nationality: form.nationality,
+        language: form.language,
+        notes: form.notes || undefined,
+      },
+    }, {
+      onSuccess: () => onSuccess(),
+      onError: () => {},
+    });
   };
 
   const inputCls = (field: keyof FormState) =>

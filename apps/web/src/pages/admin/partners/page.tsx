@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { mockPartners } from '@/mocks/admin-experiences';
-import type { MockPartner, PartnerStatus } from '@/mocks/admin-experiences';
+import type { PartnerDisplay } from '@/services/partners';
+import { usePartners } from '@/hooks/usePartners';
+import { useAuth } from '@/hooks/useAuth';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
 import PartnersList from './components/PartnersList';
 import PartnerDetailDrawer from './components/PartnerDetailDrawer';
@@ -10,20 +11,18 @@ interface Toast { id: number; message: string; type: 'success' | 'info' }
 
 interface Filters {
   search: string;
-  status: PartnerStatus | 'all';
+  status: string;
 }
 
 export default function PartnersPage() {
-  const [filters, setFilters] = useState<Filters>({ search: '', status: 'all' });
-  const [selected, setSelected] = useState<MockPartner | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const user = useAuth().user;
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: partners = [], isLoading } = usePartners(tenantId);
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
+  const [filters, setFilters] = useState<Filters>({ search: '', status: 'all' });
+  const [selected, setSelected] = useState<PartnerDisplay | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -36,14 +35,14 @@ export default function PartnersPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [showForm, selected]);
 
-  const filtered = useMemo(() => mockPartners.filter((p) => {
+  const filtered = useMemo(() => partners.filter((p) => {
     if (filters.status !== 'all' && p.status !== filters.status) return false;
     if (filters.search) {
       const q = filters.search.toLowerCase();
       if (!p.name.toLowerCase().includes(q) && !p.city.toLowerCase().includes(q) && !p.contact_name.toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [filters]);
+  }), [filters, partners]);
 
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
@@ -51,9 +50,12 @@ export default function PartnersPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  const activeCount = mockPartners.filter((p) => p.status === 'active').length;
+  const activeCount = partners.filter((p) => p.status === 'active').length;
+  const totalExps = partners.reduce((s, p) => s + p.experiences_count, 0);
+  const totalBookings = partners.reduce((s, p) => s + p.bookings_generated, 0);
+  const totalRevenue = partners.reduce((s, p) => s + p.revenue_generated, 0);
 
-  const STATUS_PILLS: { value: PartnerStatus | 'all'; label: string }[] = [
+  const STATUS_PILLS: { value: string; label: string }[] = [
     { value: 'all', label: 'Todos' },
     { value: 'active', label: 'Ativos' },
     { value: 'paused', label: 'Pausados' },
@@ -85,10 +87,10 @@ export default function PartnersPage() {
       {/* Summary strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Parceiros ativos', value: mockPartners.filter((p) => p.status === 'active').length, icon: 'ri-hand-heart-line', color: 'text-teal-600', bg: 'bg-teal-500/10' },
-          { label: 'Experiências vinculadas', value: mockPartners.reduce((s, p) => s + p.experiences_count, 0), icon: 'ri-compass-discover-line', color: 'text-navy-700', bg: 'bg-navy-50' },
-          { label: 'Reservas geradas', value: mockPartners.reduce((s, p) => s + p.bookings_generated, 0), icon: 'ri-calendar-check-line', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Receita total', value: `R$ ${(mockPartners.reduce((s, p) => s + p.revenue_generated, 0) / 1000).toFixed(0)}k`, icon: 'ri-money-dollar-circle-line', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Parceiros ativos', value: activeCount, icon: 'ri-hand-heart-line', color: 'text-teal-600', bg: 'bg-teal-500/10' },
+          { label: 'Experiências vinculadas', value: totalExps, icon: 'ri-compass-discover-line', color: 'text-navy-700', bg: 'bg-navy-50' },
+          { label: 'Reservas geradas', value: totalBookings, icon: 'ri-calendar-check-line', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Receita total', value: totalRevenue > 0 ? `R$ ${(totalRevenue / 1000).toFixed(0)}k` : 'R$ 0', icon: 'ri-money-dollar-circle-line', color: 'text-emerald-600', bg: 'bg-emerald-50' },
         ].map((c) => (
           <div key={c.label} className="bg-white border border-stone-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
@@ -132,12 +134,12 @@ export default function PartnersPage() {
         </div>
         {(filters.search || filters.status !== 'all') && (
           <p className="text-[12px] text-stone-500">
-            Exibindo <span className="font-semibold text-stone-700">{filtered.length}</span> de {mockPartners.length} parceiros
+            Exibindo <span className="font-semibold text-stone-700">{filtered.length}</span> de {partners.length} parceiros
           </p>
         )}
       </div>
 
-      <PartnersList partners={filtered} onSelect={setSelected} selectedId={selected?.id} loading={loading} />
+      <PartnersList partners={filtered} onSelect={setSelected} selectedId={selected?.id} loading={isLoading} />
 
       {selected && <PartnerDetailDrawer partner={selected} onClose={() => setSelected(null)} />}
       {showForm && (
@@ -147,6 +149,7 @@ export default function PartnersPage() {
             setShowForm(false);
             addToast(draft ? 'Rascunho salvo' : 'Parceiro cadastrado com sucesso');
           }}
+          tenantId={tenantId}
         />
       )}
 

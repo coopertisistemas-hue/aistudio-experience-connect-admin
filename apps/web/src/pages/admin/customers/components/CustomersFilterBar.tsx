@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import type { CustomerStatus } from '@/mocks/admin-customers';
 
 interface CustomersFilterBarProps {
   search: string;
   onSearchChange: (v: string) => void;
-  status: CustomerStatus | 'all';
-  onStatusChange: (v: CustomerStatus | 'all') => void;
+  status: string;
+  onStatusChange: (v: string) => void;
   recurrence: 'all' | 'recurring' | 'new';
   onRecurrenceChange: (v: 'all' | 'recurring' | 'new') => void;
   total: number;
@@ -13,7 +12,7 @@ interface CustomersFilterBarProps {
   onClear: () => void;
 }
 
-const statusPills: { key: CustomerStatus | 'all'; label: string }[] = [
+const statusPills: { key: string; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'active', label: 'Ativo' },
   { key: 'vip', label: 'VIP' },

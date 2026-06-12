@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
-import type { MockCustomer, CustomerStatus } from '@/mocks/admin-customers';
-import { mockCustomers, mockCustomerStats } from '@/mocks/admin-customers';
+import { useState, useMemo, useCallback } from 'react';
+import type { CustomerDisplay } from '@/services/customers';
+import { useCustomers, useCustomerStats } from '@/hooks/useCustomers';
+import { useAuth } from '@/hooks/useAuth';
 import CustomersSummaryStrip from './components/CustomersSummaryStrip';
 import CustomersFilterBar from './components/CustomersFilterBar';
 import CustomersList from './components/CustomersList';
@@ -14,30 +15,28 @@ interface Toast {
 }
 
 export default function CustomersPage() {
-  const [loading, setLoading] = useState(true);
-  const [selectedCustomer, setSelectedCustomer] = useState<MockCustomer | null>(null);
+  const user = useAuth().user;
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: customers = [], isLoading } = useCustomers(tenantId);
+  const { data: stats } = useCustomerStats(tenantId);
+
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerDisplay | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Filters
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<CustomerStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [recurrenceFilter, setRecurrenceFilter] = useState<'all' | 'recurring' | 'new'>('all');
 
-  // Simulate loading
-  useState(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  });
-
-  const addToast = (message: string, type: Toast['type'] = 'success') => {
+  const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
     setToasts((t) => [...t, { id, message, type }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
-  };
+  }, []);
 
   const filtered = useMemo(() => {
-    return mockCustomers.filter((c) => {
+    return customers.filter((c) => {
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (recurrenceFilter === 'recurring' && !c.is_recurring) return false;
       if (recurrenceFilter === 'new' && c.is_recurring) return false;
@@ -51,7 +50,7 @@ export default function CustomersPage() {
       }
       return true;
     });
-  }, [search, statusFilter, recurrenceFilter]);
+  }, [search, statusFilter, recurrenceFilter, customers]);
 
   const handleClearFilters = () => {
     setSearch('');
@@ -59,7 +58,7 @@ export default function CustomersPage() {
     setRecurrenceFilter('all');
   };
 
-  const handleSelectCustomer = (c: MockCustomer) => {
+  const handleSelectCustomer = (c: CustomerDisplay) => {
     setSelectedCustomer(c);
   };
 
@@ -69,7 +68,7 @@ export default function CustomersPage() {
   };
 
   // Alert banner logic
-  const overdueCustomers = mockCustomers.filter((c) => c.pending_amount > 0);
+  const overdueCustomers = customers.filter((c) => c.pending_amount > 0);
 
   const toastColors = {
     success: 'bg-teal-600 text-white',
@@ -118,12 +117,11 @@ export default function CustomersPage() {
           <p className="text-sm text-stone-500 mt-0.5">
             Gestão de hóspedes, passageiros e relacionamento
             <span className="ml-2 px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[11px] font-semibold border border-stone-200">
-              {mockCustomerStats.total_ativos} ativos · {mockCustomerStats.vip_count} VIP
+              {stats ? `${stats.total_ativos} ativos · ${stats.vip_count} VIP` : 'carregando…'}
             </span>
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Export placeholder */}
           <button
             type="button"
             onClick={() => addToast('Exportação disponível em breve.', 'info')}
@@ -132,7 +130,6 @@ export default function CustomersPage() {
             <i className="ri-download-line text-sm"></i>
             Exportar
           </button>
-          {/* New customer CTA */}
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -145,17 +142,17 @@ export default function CustomersPage() {
       </div>
 
       {/* KPI summary strip */}
-      <CustomersSummaryStrip />
+      <CustomersSummaryStrip stats={stats} customers={customers} />
 
       {/* Filter bar */}
       <CustomersFilterBar
         search={search}
         onSearchChange={setSearch}
-        status={statusFilter}
+        status={statusFilter as any}
         onStatusChange={setStatusFilter}
         recurrence={recurrenceFilter}
         onRecurrenceChange={setRecurrenceFilter}
-        total={mockCustomers.length}
+        total={customers.length}
         filtered={filtered.length}
         onClear={handleClearFilters}
       />
@@ -164,7 +161,7 @@ export default function CustomersPage() {
       <CustomersList
         customers={filtered}
         onSelect={handleSelectCustomer}
-        loading={loading}
+        loading={isLoading}
       />
 
       {/* Mobile sticky CTA */}
@@ -197,6 +194,7 @@ export default function CustomersPage() {
         <NovoClienteForm
           onClose={() => setShowForm(false)}
           onSuccess={handleFormSuccess}
+          tenantId={tenantId}
         />
       )}
     </div>

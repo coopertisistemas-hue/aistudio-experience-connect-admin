@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { MockPartner, PartnerType } from '@/mocks/admin-experiences';
-import { partnerTypeLabels, mockExperiences } from '@/mocks/admin-experiences';
+import { partnerTypeLabels } from '@/services/partners';
+import type { PartnerDisplay } from '@/services/partners';
 
 interface Props {
-  partner: MockPartner;
+  partner: PartnerDisplay;
   onClose: () => void;
 }
 
@@ -17,7 +17,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'observacoes', label: 'Observações', icon: 'ri-sticky-note-line' },
 ];
 
-const TYPE_ICONS: Record<PartnerType, string> = {
+const TYPE_ICONS: Record<string, string> = {
   hotel:              'ri-hotel-line',
   pousada:            'ri-home-heart-line',
   agencia:            'ri-building-2-line',
@@ -33,7 +33,7 @@ const MOCK_HISTORY = [
   { date: '2026-03-15', event: 'Nova experiência vinculada', type: 'link' },
 ];
 
-function PerfilTab({ partner: p }: { partner: MockPartner }) {
+function PerfilTab({ partner: p }: { partner: PartnerDisplay }) {
   const statusLabel = p.status === 'active' ? 'Ativo' : p.status === 'paused' ? 'Pausado' : 'Inativo';
   const statusStyles =
     p.status === 'active'   ? 'bg-teal-50 border-teal-200 text-teal-700' :
@@ -51,9 +51,9 @@ function PerfilTab({ partner: p }: { partner: MockPartner }) {
           </span>
           <span className="flex items-center gap-1.5 text-[11px] text-stone-500 bg-white border border-stone-200 px-2 py-1 rounded-full">
             <div className="w-3 h-3 flex items-center justify-center">
-              <i className={`${TYPE_ICONS[p.type]} text-[10px] text-stone-400`}></i>
+              <i className={`${TYPE_ICONS[p.type] || 'ri-building-line'} text-[10px] text-stone-400`}></i>
             </div>
-            {partnerTypeLabels[p.type]}
+            {partnerTypeLabels[p.type] || p.type}
           </span>
         </div>
         <h3 className="text-base font-bold text-stone-800 font-serif mb-1">{p.name}</h3>
@@ -95,12 +95,12 @@ function PerfilTab({ partner: p }: { partner: MockPartner }) {
   );
 }
 
-function OperacaoTab({ partner: p }: { partner: MockPartner }) {
+function OperacaoTab({ partner: p }: { partner: PartnerDisplay }) {
   return (
     <div className="space-y-4">
       <div className="bg-white border border-stone-200 rounded-xl divide-y divide-stone-100">
         {[
-          { label: 'Tipo de parceiro', value: partnerTypeLabels[p.type], icon: TYPE_ICONS[p.type] },
+          { label: 'Tipo de parceiro', value: partnerTypeLabels[p.type] || p.type, icon: TYPE_ICONS[p.type] || 'ri-building-line' },
           { label: 'Parceiro desde', value: new Date(p.since).toLocaleDateString('pt-BR'), icon: 'ri-calendar-line' },
           { label: 'Última reserva', value: p.last_booking ? new Date(p.last_booking).toLocaleDateString('pt-BR') : 'Sem reservas', icon: 'ri-calendar-check-line' },
           { label: 'Experiências', value: `${p.experiences_count} vinculada${p.experiences_count !== 1 ? 's' : ''}`, icon: 'ri-compass-discover-line' },
@@ -119,38 +119,18 @@ function OperacaoTab({ partner: p }: { partner: MockPartner }) {
   );
 }
 
-function VinculosTab({ partner: p }: { partner: MockPartner }) {
-  const linked = mockExperiences.filter((e) => e.partner_id === p.id);
+function VinculosTab({ partner: p }: { partner: PartnerDisplay }) {
   return (
     <div className="space-y-4">
       <div className="bg-white border border-stone-200 rounded-xl p-4">
         <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
           Experiências vinculadas
-          <span className="ml-2 bg-teal-100 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{linked.length}</span>
+          <span className="ml-2 bg-teal-100 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{p.experiences_count}</span>
         </p>
-        {linked.length === 0 ? (
+        {p.experiences_count === 0 ? (
           <p className="text-sm text-stone-400">Nenhuma experiência vinculada ainda.</p>
         ) : (
-          <div className="space-y-2">
-            {linked.map((exp) => (
-              <div key={exp.id} className="flex items-center gap-3 py-2 border-b border-stone-100 last:border-0">
-                <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-teal-50 flex-shrink-0">
-                  <i className="ri-compass-discover-line text-teal-600 text-xs"></i>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-stone-800 truncate">{exp.name}</p>
-                  <p className="text-[11px] text-stone-500">{exp.category_name} · R$ {exp.base_price.toLocaleString('pt-BR')}</p>
-                </div>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  exp.status === 'active' ? 'bg-teal-50 text-teal-700' :
-                  exp.status === 'high_demand' ? 'bg-red-50 text-red-600' :
-                  'bg-stone-100 text-stone-500'
-                }`}>
-                  {exp.status === 'active' ? 'Ativa' : exp.status === 'high_demand' ? 'Alta demanda' : exp.status}
-                </span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-stone-500">{p.experiences_count} experiência{p.experiences_count !== 1 ? 's' : ''} vinculada{p.experiences_count !== 1 ? 's' : ''} a este parceiro.</p>
         )}
       </div>
 
@@ -195,7 +175,7 @@ function HistoricoTab() {
   );
 }
 
-function ObservacoesTab({ partner: p }: { partner: MockPartner }) {
+function ObservacoesTab({ partner: p }: { partner: PartnerDisplay }) {
   const [note, setNote] = useState('');
   return (
     <div className="space-y-4">
@@ -236,11 +216,11 @@ export default function PartnerDetailDrawer({ partner, onClose }: Props) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-navy-950/8 border border-stone-200 flex-shrink-0">
-              <i className={`${TYPE_ICONS[partner.type]} text-[#2d4a63] text-base`}></i>
+              <i className={`${TYPE_ICONS[partner.type] || 'ri-building-line'} text-[#2d4a63] text-base`}></i>
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-stone-800 truncate">{partner.name}</p>
-              <p className="text-[11px] text-stone-500">{partnerTypeLabels[partner.type]} · {partner.city}</p>
+              <p className="text-[11px] text-stone-500">{partnerTypeLabels[partner.type] || partner.type} · {partner.city}</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-stone-100 text-stone-400 cursor-pointer flex-shrink-0">

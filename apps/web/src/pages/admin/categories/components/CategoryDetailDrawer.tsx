@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { MockCategory } from '@/mocks/admin-experiences';
-import { mockExperiences } from '@/mocks/admin-experiences';
+import type { CategoryDisplay } from '@/services/categories';
 
 interface Props {
-  category: MockCategory;
+  category: CategoryDisplay;
   onClose: () => void;
 }
 
@@ -25,7 +24,7 @@ const COLOR_MAP: Record<string, { bg: string; icon: string; text: string; border
   sky:     { bg: 'bg-sky-500/10',    icon: 'text-sky-600',    text: 'text-sky-700',    border: 'border-sky-200' },
 };
 
-function PerfilTab({ cat }: { cat: MockCategory }) {
+function PerfilTab({ cat }: { cat: CategoryDisplay }) {
   const c = COLOR_MAP[cat.color] ?? COLOR_MAP.teal;
   return (
     <div className="space-y-5">
@@ -71,37 +70,18 @@ function PerfilTab({ cat }: { cat: MockCategory }) {
   );
 }
 
-function VinculosTab({ cat }: { cat: MockCategory }) {
-  const linked = mockExperiences.filter((e) => e.category_id === cat.id);
+function VinculosTab({ cat }: { cat: CategoryDisplay }) {
   return (
     <div className="space-y-4">
       <div className="bg-white border border-stone-200 rounded-xl p-4">
         <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">
           Experiências nesta categoria
-          <span className="ml-2 bg-teal-100 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{linked.length}</span>
+          <span className="ml-2 bg-teal-100 text-teal-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{cat.experiences_count}</span>
         </p>
-        {linked.length === 0 ? (
+        {cat.experiences_count === 0 ? (
           <p className="text-sm text-stone-400">Nenhuma experiência vinculada ainda.</p>
         ) : (
-          <div className="space-y-2">
-            {linked.map((exp) => (
-              <div key={exp.id} className="flex items-center gap-3 py-2 border-b border-stone-100 last:border-0">
-                <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-teal-50 flex-shrink-0">
-                  <i className="ri-compass-discover-line text-teal-600 text-xs"></i>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-stone-800 truncate">{exp.name}</p>
-                  <p className="text-[11px] text-stone-500">{exp.partner_name} · R$ {exp.base_price.toLocaleString('pt-BR')}</p>
-                </div>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  exp.status === 'active' ? 'bg-teal-50 text-teal-700' :
-                  exp.status === 'high_demand' ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-500'
-                }`}>
-                  {exp.status === 'active' ? 'Ativa' : exp.status === 'high_demand' ? 'Alta demanda' : exp.status}
-                </span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-stone-500">{cat.experiences_count} experiência{cat.experiences_count !== 1 ? 's' : ''} nesta categoria.</p>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { mockCategories } from '@/mocks/admin-experiences';
-import type { MockCategory, DemandLevel, CategoryVisibility } from '@/mocks/admin-experiences';
+import type { CategoryDisplay } from '@/services/categories';
+import { useCategories } from '@/hooks/useCategories';
+import { useAuth } from '@/hooks/useAuth';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
 import CategoriesGrid from './components/CategoriesGrid';
 import CategoryDetailDrawer from './components/CategoryDetailDrawer';
@@ -8,22 +9,17 @@ import NovaCategoriaForm from './components/NovaCategoriaForm';
 
 interface Toast { id: number; message: string }
 
-type DemandFilter = DemandLevel | 'all';
-type VisFilter = CategoryVisibility | 'all';
-
 export default function CategoriesPage() {
-  const [selected, setSelected] = useState<MockCategory | null>(null);
+  const user = useAuth().user;
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: categories = [], isLoading } = useCategories(tenantId);
+
+  const [selected, setSelected] = useState<CategoryDisplay | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
-  const [demandFilter, setDemandFilter] = useState<DemandFilter>('all');
-  const [visFilter, setVisFilter] = useState<VisFilter>('all');
-  const [loading, setLoading] = useState(true);
+  const [demandFilter, setDemandFilter] = useState<string>('all');
+  const [visFilter, setVisFilter] = useState<string>('all');
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -42,7 +38,7 @@ export default function CategoriesPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  const filtered = mockCategories.filter((c) => {
+  const filtered = categories.filter((c) => {
     if (demandFilter !== 'all' && c.demand !== demandFilter) return false;
     if (visFilter !== 'all' && c.visibility !== visFilter) return false;
     if (search) {
@@ -52,8 +48,8 @@ export default function CategoriesPage() {
     return true;
   });
 
-  const visibleCount = mockCategories.filter((c) => c.visibility === 'visible').length;
-  const totalExps = mockCategories.reduce((s, c) => s + c.experiences_count, 0);
+  const visibleCount = categories.filter((c) => c.visibility === 'visible').length;
+  const totalExps = categories.reduce((s, c) => s + c.experiences_count, 0);
 
   return (
     <div className="p-4 md:p-6">
@@ -76,10 +72,10 @@ export default function CategoriesPage() {
       {/* Stats strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total de categorias', value: mockCategories.length, icon: 'ri-price-tag-3-line', color: 'text-teal-600', bg: 'bg-teal-500/10' },
+          { label: 'Total de categorias', value: categories.length, icon: 'ri-price-tag-3-line', color: 'text-teal-600', bg: 'bg-teal-500/10' },
           { label: 'Visíveis', value: visibleCount, icon: 'ri-eye-line', color: 'text-navy-700', bg: 'bg-navy-50' },
           { label: 'Experiências vinculadas', value: totalExps, icon: 'ri-compass-discover-line', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Alta demanda', value: mockCategories.filter((c) => c.demand === 'high').length, icon: 'ri-fire-line', color: 'text-red-500', bg: 'bg-red-50' },
+          { label: 'Alta demanda', value: categories.filter((c) => c.demand === 'high').length, icon: 'ri-fire-line', color: 'text-red-500', bg: 'bg-red-50' },
         ].map((item) => (
           <div key={item.label} className="bg-white border border-stone-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
@@ -108,7 +104,7 @@ export default function CategoriesPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Demand */}
-          {([['all', 'Todas'], ['high', 'Alta demanda'], ['medium', 'Média demanda'], ['low', 'Baixa demanda']] as [DemandFilter, string][]).map(([v, label]) => (
+          {([['all', 'Todas'], ['high', 'Alta demanda'], ['medium', 'Média demanda'], ['low', 'Baixa demanda']] as [string, string][]).map(([v, label]) => (
             <button key={v} type="button" onClick={() => setDemandFilter(v)}
               className={`h-7 px-3 rounded-full text-[12px] font-medium border transition-all cursor-pointer whitespace-nowrap
                 ${demandFilter === v ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}`}>
@@ -116,7 +112,7 @@ export default function CategoriesPage() {
             </button>
           ))}
           <span className="text-stone-300 text-xs">|</span>
-          {([['all', 'Qualquer visibilidade'], ['visible', 'Visíveis'], ['hidden', 'Ocultas']] as [VisFilter, string][]).map(([v, label]) => (
+          {([['all', 'Qualquer visibilidade'], ['visible', 'Visíveis'], ['hidden', 'Ocultas']] as [string, string][]).map(([v, label]) => (
             <button key={v} type="button" onClick={() => setVisFilter(v)}
               className={`h-7 px-3 rounded-full text-[12px] font-medium border transition-all cursor-pointer whitespace-nowrap
                 ${visFilter === v ? 'bg-navy-950 text-white border-navy-900' : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'}`}>
@@ -126,7 +122,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1,2,3,4,5,6].map((i) => (
             <div key={i} className="bg-white border border-stone-200 rounded-xl p-5 animate-pulse h-44" />
@@ -147,6 +143,7 @@ export default function CategoriesPage() {
             setShowForm(false);
             addToast('Categoria criada com sucesso');
           }}
+          tenantId={tenantId}
         />
       )}
 

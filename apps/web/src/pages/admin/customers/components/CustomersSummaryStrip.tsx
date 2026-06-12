@@ -1,4 +1,9 @@
-import { mockCustomerStats } from '@/mocks/admin-customers';
+import type { CustomerStats, CustomerDisplay } from '@/services/customers';
+
+interface Props {
+  stats?: CustomerStats;
+  customers: CustomerDisplay[];
+}
 
 const fmt = (v: number) =>
   v >= 1000 ? `R$ ${(v / 1000).toFixed(1).replace('.', ',')}k` : `R$ ${v.toLocaleString('pt-BR')}`;
@@ -13,53 +18,65 @@ interface KpiCard {
   bar?: number;
 }
 
-export default function CustomersSummaryStrip() {
-  const s = mockCustomerStats;
+export default function CustomersSummaryStrip({ stats, customers }: Props) {
+  const ativos = customers.filter((c) => c.status !== 'inactive').length;
+  const thisMonth = new Date();
+  thisMonth.setDate(1);
+  const novos = customers.filter((c) => new Date(c.created_at) >= thisMonth).length;
+  const recorrentes = customers.filter((c) => c.is_recurring).length;
+  const vip = customers.filter((c) => c.status === 'vip').length;
+  const overdue = customers.filter((c) => c.pending_amount > 0).length;
+  const totalSpent = customers.reduce((s, c) => s + c.total_spent, 0);
+  const totalBookings = customers.reduce((s, c) => s + c.total_bookings, 0);
+  const reservasPorCliente = customers.length > 0 ? Math.round(totalBookings / customers.length) : 0;
+  const ticketMedio = customers.filter((c) => c.total_spent > 0).length > 0
+    ? Math.round(customers.filter((c) => c.total_spent > 0).reduce((s, c) => s + c.ticket_medio, 0) / Math.max(customers.filter((c) => c.total_spent > 0).length, 1))
+    : 0;
 
   const cards: KpiCard[] = [
     {
       label: 'Clientes Ativos',
-      value: s.total_ativos,
-      sub: `${s.vip_count} VIP`,
+      value: ativos,
+      sub: `${vip} VIP`,
       icon: 'ri-contacts-book-2-line',
       color: 'teal',
     },
     {
       label: 'Novos Clientes',
-      value: s.novos_clientes,
+      value: novos,
       sub: 'este mês',
       icon: 'ri-user-add-line',
       color: 'navy',
     },
     {
       label: 'Recorrentes',
-      value: s.recorrentes,
-      sub: `${Math.round((s.recorrentes / s.total_ativos) * 100)}% da base`,
+      value: recorrentes,
+      sub: `${ativos > 0 ? Math.round((recorrentes / ativos) * 100) : 0}% da base`,
       icon: 'ri-repeat-line',
       color: 'teal',
-      bar: Math.round((s.recorrentes / (s.total_ativos || 1)) * 100),
+      bar: ativos > 0 ? Math.round((recorrentes / ativos) * 100) : 0,
     },
     {
       label: 'Reservas / Cliente',
-      value: s.reservas_por_cliente,
+      value: reservasPorCliente,
       sub: 'média',
       icon: 'ri-calendar-check-line',
       color: 'stone',
     },
     {
       label: 'Ticket Médio',
-      value: fmt(s.ticket_medio),
+      value: fmt(ticketMedio),
       sub: 'por cliente',
       icon: 'ri-price-tag-3-line',
       color: 'navy',
     },
     {
       label: 'Valor Total',
-      value: fmt(s.valor_total),
-      sub: `${s.overdue_count > 0 ? `${s.overdue_count} c/ saldo` : 'sem pendências'}`,
+      value: fmt(totalSpent),
+      sub: `${overdue > 0 ? `${overdue} c/ saldo` : 'sem pendências'}`,
       icon: 'ri-money-dollar-circle-line',
-      color: s.overdue_count > 0 ? 'amber' : 'teal',
-      pulse: s.overdue_count > 0,
+      color: overdue > 0 ? 'amber' : 'teal',
+      pulse: overdue > 0,
     },
   ];
 
