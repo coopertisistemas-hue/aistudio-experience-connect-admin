@@ -1,7 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { mockVehicles } from '@/mocks/admin-vehicles';
-import type { MockVehicle, VehicleStatus } from '@/mocks/admin-vehicles';
+import { useState, useMemo, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useVehicles } from '@/hooks/useVehicles';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
+import { TableSkeleton, KPISkeleton } from '@/pages/admin/components/ui/LoadingSkeleton';
+import EmptyState from '@/pages/admin/components/ui/EmptyState';
 import VehiclesSummaryStrip from './components/VehiclesSummaryStrip';
 import VehiclesFilterBar from './components/VehiclesFilterBar';
 import type { VehiclesFilters } from './components/VehiclesFilterBar';
@@ -23,53 +25,16 @@ const INITIAL_FILTERS: VehiclesFilters = {
   maintenance: 'all',
 };
 
-function applyFilters(vehicles: MockVehicle[], f: VehiclesFilters): MockVehicle[] {
-  return vehicles.filter((v) => {
-    if (f.status !== 'all' && v.status !== f.status) return false;
-    if (f.type !== 'all' && v.type !== f.type) return false;
-    if (f.hasDriver === 'yes' && !v.assigned_driver) return false;
-    if (f.hasDriver === 'no' && v.assigned_driver) return false;
-    if (f.maintenance !== 'all' && v.maintenance_status !== f.maintenance) return false;
-    if (f.search) {
-      const q = f.search.toLowerCase();
-      if (
-        !v.name.toLowerCase().includes(q) &&
-        !v.plate.toLowerCase().includes(q) &&
-        !v.make.toLowerCase().includes(q) &&
-        !v.model.toLowerCase().includes(q) &&
-        !v.type.toLowerCase().includes(q)
-      ) return false;
-    }
-    return true;
-  });
-}
-
 export default function VehiclesPage() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const { data: vehicles = [], isLoading, error } = useVehicles(tenantId);
+
   const [filters, setFilters] = useState<VehiclesFilters>(INITIAL_FILTERS);
-  const [selectedVehicle, setSelectedVehicle] = useState<MockVehicle | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  // Simulate loading
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 900);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Escape key handler
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showForm) { setShowForm(false); return; }
-        if (selectedVehicle) setSelectedVehicle(null);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [showForm, selectedVehicle]);
-
-  const filtered = useMemo(() => applyFilters(mockVehicles, filters), [filters]);
 
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
@@ -77,18 +42,46 @@ export default function VehiclesPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  // Operational alerts
-  const maintenanceAlerts = mockVehicles.filter(
-    (v) => v.maintenance_status === 'overdue' || v.maintenance_status === 'in_maintenance'
-  );
-  const attentionVehicles = mockVehicles.filter((v) => v.status === 'attention');
-  const noDriverVehicles = mockVehicles.filter(
-    (v) => !v.assigned_driver && v.status === 'available'
-  );
+  const filtered = useMemo(() => {
+    return vehicles.filter((v: any) => {
+      if (filters.status !== 'all' && v.status !== filters.status) return false;
+      if (filters.type !== 'all' && v.type !== filters.type) return false;
+      if (filters.hasDriver === 'yes' && !v.assigned_driver) return false;
+      if (filters.hasDriver === 'no' && v.assigned_driver) return false;
+      if (filters.maintenance !== 'all' && v.maintenance_status !== filters.maintenance) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        if (
+          !v.name.toLowerCase().includes(q) &&
+          !(v.plate || '').toLowerCase().includes(q) &&
+          !(v.make || '').toLowerCase().includes(q) &&
+          !(v.model || '').toLowerCase().includes(q) &&
+          !(v.type || '').toLowerCase().includes(q)
+        ) return false;
+      }
+      return true;
+    });
+  }, [vehicles, filters]);
 
-  const handleSuccess = () => {
-    addToast('Veículo criado com sucesso');
-  };
+  if (error) {
+    return (
+      <div className="p-4 md:p-6">
+        <EmptyState
+          icon="ri-error-warning-line"
+          title="Erro ao carregar veículos"
+          description="Não foi possível carregar os dados. Tente novamente."
+        />
+      </div>
+    );
+  }
+
+  const maintenanceAlerts = vehicles.filter(
+    (v: any) => v.maintenance_status === 'overdue' || v.maintenance_status === 'in_maintenance'
+  );
+  const attentionVehicles = vehicles.filter((v: any) => v.status === 'attention');
+  const noDriverVehicles = vehicles.filter(
+    (v: any) => !v.assigned_driver && v.status === 'available'
+  );
 
   const handleFilterByMaintenance = () => {
     setFilters((p) => ({ ...p, maintenance: 'overdue', status: 'all' }));
@@ -96,12 +89,11 @@ export default function VehiclesPage() {
 
   return (
     <div className="p-4 md:p-6">
-      {/* Page Header */}
       <PageHeader
         icon="ri-car-line"
         title="Veículos"
         subtitle="Gerencie a frota, capacidade e status operacional da operação."
-        badge={`${mockVehicles.filter((v) => v.status === 'available').length} disponíveis`}
+        badge={`${vehicles.filter((v: any) => v.status === 'available').length} disponíveis`}
         action={
           <div className="flex items-center gap-2">
             <button
@@ -123,7 +115,6 @@ export default function VehiclesPage() {
         }
       />
 
-      {/* Operational Alerts */}
       {maintenanceAlerts.length > 0 && (
         <div className="mb-4 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 flex-shrink-0 mt-0.5">
@@ -134,7 +125,7 @@ export default function VehiclesPage() {
               {maintenanceAlerts.length} veículo{maintenanceAlerts.length > 1 ? 's' : ''} com pendência de manutenção
             </p>
             <p className="text-[11px] text-amber-600 mt-0.5">
-              {maintenanceAlerts.map((v) => v.name).join(', ')}
+              {maintenanceAlerts.map((v: any) => v.name).join(', ')}
             </p>
           </div>
           <button
@@ -147,13 +138,13 @@ export default function VehiclesPage() {
         </div>
       )}
 
-      {attentionVehicles.length > 0 && !maintenanceAlerts.some((v) => attentionVehicles.includes(v)) && (
+      {attentionVehicles.length > 0 && !maintenanceAlerts.some((v: any) => attentionVehicles.includes(v)) && (
         <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-100 flex-shrink-0">
             <i className="ri-alert-line text-red-500 text-sm"></i>
           </div>
           <p className="text-xs font-semibold text-red-700 flex-1">
-            {attentionVehicles.map((v) => v.name).join(', ')} — requer atenção operacional
+            {attentionVehicles.map((v: any) => v.name).join(', ')} — requer atenção operacional
           </p>
           <button
             type="button"
@@ -183,26 +174,40 @@ export default function VehiclesPage() {
         </div>
       )}
 
-      {/* KPI Summary */}
-      <VehiclesSummaryStrip vehicles={mockVehicles} />
+      {isLoading ? (
+        <div className="space-y-4">
+          <KPISkeleton />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white border border-sand-200 rounded-2xl p-5 animate-pulse">
+                <div className="h-4 bg-sand-200 rounded-lg w-2/3 mb-3" />
+                <div className="h-14 bg-sand-100 rounded-xl mb-4" />
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {[...Array(4)].map((_, j) => <div key={j} className="h-10 bg-sand-100 rounded-xl" />)}
+                </div>
+                <div className="h-8 bg-sand-100 rounded-xl" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <VehiclesSummaryStrip vehicles={vehicles} />
+          <VehiclesFilterBar
+            filters={filters}
+            onChange={setFilters}
+            total={vehicles.length}
+            filtered={filtered.length}
+          />
+          <VehiclesGrid
+            vehicles={filtered}
+            onSelect={setSelectedVehicle}
+            selectedId={selectedVehicle?.id}
+            loading={false}
+          />
+        </>
+      )}
 
-      {/* Filters */}
-      <VehiclesFilterBar
-        filters={filters}
-        onChange={setFilters}
-        total={mockVehicles.length}
-        filtered={filtered.length}
-      />
-
-      {/* Grid */}
-      <VehiclesGrid
-        vehicles={filtered}
-        onSelect={setSelectedVehicle}
-        selectedId={selectedVehicle?.id}
-        loading={loading}
-      />
-
-      {/* Detail Drawer */}
       {selectedVehicle && (
         <VehicleDetailDrawer
           vehicle={selectedVehicle}
@@ -210,15 +215,13 @@ export default function VehiclesPage() {
         />
       )}
 
-      {/* New Vehicle Form */}
       {showForm && (
         <NovoVeiculoForm
           onClose={() => setShowForm(false)}
-          onSuccess={handleSuccess}
+          onSuccess={() => addToast('Veículo criado com sucesso')}
         />
       )}
 
-      {/* Toast notifications */}
       <div className="fixed bottom-6 right-6 z-[60] space-y-2 pointer-events-none">
         {toasts.map((t) => (
           <div

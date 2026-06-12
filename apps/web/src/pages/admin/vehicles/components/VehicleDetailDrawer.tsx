@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { MockVehicle, VehicleStatus, VehicleType } from '@/mocks/admin-vehicles';
 
 interface VehicleDetailDrawerProps {
-  vehicle: MockVehicle;
+  vehicle: any;
   onClose: () => void;
 }
 
@@ -17,7 +16,7 @@ const tabs: { id: DrawerTab; label: string; icon: string }[] = [
   { id: 'historico',  label: 'Histórico',   icon: 'ri-history-line' },
 ];
 
-const statusConfig: Record<VehicleStatus, { label: string; badge: string; dot: string }> = {
+const statusConfig: Record<string, { label: string; badge: string; dot: string }> = {
   available:    { label: 'Disponível',   badge: 'bg-teal-50 text-teal-700 border-teal-200',    dot: 'bg-teal-500' },
   in_operation: { label: 'Em Operação',  badge: 'bg-navy-50 text-navy-700 border-navy-200',     dot: 'bg-navy-500' },
   maintenance:  { label: 'Manutenção',   badge: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500' },
@@ -26,11 +25,11 @@ const statusConfig: Record<VehicleStatus, { label: string; badge: string; dot: s
   attention:    { label: 'Atenção',      badge: 'bg-red-50 text-red-600 border-red-200',         dot: 'bg-red-400' },
 };
 
-const typeLabel: Record<VehicleType, string> = {
+const typeLabel: Record<string, string> = {
   van: 'Van', sprinter: 'Sprinter', sedan: 'Sedã', suv: 'SUV', bus: 'Ônibus',
 };
 
-const typeIcon: Record<VehicleType, string> = {
+const typeIcon: Record<string, string> = {
   van: 'ri-car-line', sprinter: 'ri-bus-2-line', sedan: 'ri-taxi-line', suv: 'ri-car-line', bus: 'ri-bus-line',
 };
 

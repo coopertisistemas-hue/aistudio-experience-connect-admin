@@ -1,13 +1,11 @@
-import type { MockRoute, RouteStatus, RouteCategory } from '@/mocks/admin-routes';
-
 interface RoutesGridProps {
-  routes: MockRoute[];
-  onSelect: (r: MockRoute) => void;
+  routes: any[];
+  onSelect: (r: any) => void;
   selectedId?: string;
   loading?: boolean;
 }
 
-const statusConfig: Record<RouteStatus, { label: string; badge: string; dot: string; ring: string }> = {
+const statusConfig: Record<string, { label: string; badge: string; dot: string; ring: string }> = {
   active:       { label: 'Ativa',         badge: 'bg-teal-50 text-teal-700 border-teal-200',    dot: 'bg-teal-500',  ring: 'ring-teal-200' },
   inactive:     { label: 'Inativa',       badge: 'bg-stone-100 text-stone-600 border-stone-200', dot: 'bg-stone-400', ring: 'ring-stone-200' },
   paused:       { label: 'Pausada',       badge: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500', ring: 'ring-amber-200' },
@@ -15,7 +13,7 @@ const statusConfig: Record<RouteStatus, { label: string; badge: string; dot: str
   attention:    { label: 'Atenção',       badge: 'bg-red-50 text-red-600 border-red-200',         dot: 'bg-red-400',   ring: 'ring-red-200' },
 };
 
-const categoryConfig: Record<RouteCategory, { label: string; icon: string; color: string }> = {
+const categoryConfig: Record<string, { label: string; icon: string; color: string }> = {
   airport:   { label: 'Aeroporto',   icon: 'ri-flight-takeoff-line', color: 'text-navy-500' },
   hotel:     { label: 'Hotel',       icon: 'ri-hotel-line',           color: 'text-teal-600' },
   tourism:   { label: 'Turismo',     icon: 'ri-compass-discover-line', color: 'text-amber-600' },
@@ -62,10 +60,13 @@ function SkeletonCard() {
   );
 }
 
-function RouteCard({ route, onSelect, isSelected }: { route: MockRoute; onSelect: (r: MockRoute) => void; isSelected: boolean }) {
-  const s = statusConfig[route.status];
-  const cat = categoryConfig[route.category];
-  const dem = demandConfig[route.demand_level];
+function RouteCard({ route, onSelect, isSelected }: { route: any; onSelect: (r: any) => void; isSelected: boolean }) {
+  const routeStatus = route.status || (route.is_active ? 'active' : 'inactive');
+  const routeCategory = route.category_name || route.category || 'transfer';
+  const demandLevel = route.demand_level || 'medium';
+  const s = statusConfig[routeStatus as keyof typeof statusConfig] || statusConfig.active;
+  const cat = categoryConfig[routeCategory as keyof typeof categoryConfig] || categoryConfig.transfer;
+  const dem = demandConfig[demandLevel] || demandConfig.medium;
   const durationLabel = route.duration_min >= 60
     ? `${Math.floor(route.duration_min / 60)}h${route.duration_min % 60 > 0 ? ` ${route.duration_min % 60}min` : ''}`
     : `${route.duration_min}min`;
@@ -106,25 +107,25 @@ function RouteCard({ route, onSelect, isSelected }: { route: MockRoute; onSelect
       </div>
 
       {/* Route visualization */}
-      <RouteVizMini origin={route.origin_name} destination={route.destination_name} />
+      <RouteVizMini origin={route.origin || route.origin_name || ''} destination={route.destination || route.destination_name || ''} />
 
       {/* Stats strip */}
       <div className="grid grid-cols-4 gap-2 mb-4">
         <div className="bg-sand-50 border border-sand-100 rounded-xl p-2 text-center">
-          <p className="font-serif text-base font-semibold text-navy-800">{route.distance_km}</p>
+          <p className="font-serif text-base font-semibold text-navy-800">{route.distance_km || 0}</p>
           <p className="text-[9px] text-navy-400 mt-0.5">km</p>
         </div>
         <div className="bg-sand-50 border border-sand-100 rounded-xl p-2 text-center">
-          <p className="font-serif text-base font-semibold text-navy-800">{durationLabel}</p>
+          <p className="font-serif text-base font-semibold text-navy-800">{durationLabel || '-'}</p>
           <p className="text-[9px] text-navy-400 mt-0.5">duração</p>
         </div>
         <div className="bg-sand-50 border border-sand-100 rounded-xl p-2 text-center">
-          <p className="font-serif text-base font-semibold text-navy-800">{route.transfers_today}</p>
+          <p className="font-serif text-base font-semibold text-navy-800">{route.transfers_today ?? 0}</p>
           <p className="text-[9px] text-navy-400 mt-0.5">hoje</p>
         </div>
         <div className="bg-sand-50 border border-sand-100 rounded-xl p-2 text-center">
           <p className="font-serif text-base font-semibold text-navy-800 text-[11px] leading-tight">
-            {`R$ ${route.base_price % 1 === 0 ? route.base_price.toFixed(0) : route.base_price.toFixed(0)}`}
+            {`R$ ${(route.base_price || 0).toFixed(0)}`}
           </p>
           <p className="text-[9px] text-navy-400 mt-0.5">base</p>
         </div>
@@ -134,14 +135,14 @@ function RouteCard({ route, onSelect, isSelected }: { route: MockRoute; onSelect
       <div className="space-y-1.5 mb-4">
         <div className="flex items-center justify-between text-[9px] text-navy-400">
           <span>Ocupação média</span>
-          <span className={`font-semibold ${route.avg_occupancy_pct >= 80 ? 'text-amber-600' : 'text-teal-600'}`}>
-            {route.avg_occupancy_pct}%
+          <span className={`font-semibold ${(route.avg_occupancy_pct ?? 0) >= 80 ? 'text-amber-600' : 'text-teal-600'}`}>
+            {route.avg_occupancy_pct ?? 0}%
           </span>
         </div>
         <div className="h-1.5 bg-sand-200 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${route.avg_occupancy_pct >= 80 ? 'bg-amber-400' : 'bg-teal-500'}`}
-            style={{ width: `${route.avg_occupancy_pct}%` }}
+            className={`h-full rounded-full transition-all ${(route.avg_occupancy_pct ?? 0) >= 80 ? 'bg-amber-400' : 'bg-teal-500'}`}
+            style={{ width: `${route.avg_occupancy_pct ?? 0}%` }}
           ></div>
         </div>
       </div>
@@ -149,25 +150,25 @@ function RouteCard({ route, onSelect, isSelected }: { route: MockRoute; onSelect
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          {route.associated_drivers.slice(0, 3).map((d, i) => (
+          {(route.associated_drivers || []).slice(0, 3).map((d: string, i: number) => (
             <div
               key={i}
               className="w-5 h-5 flex items-center justify-center rounded-full bg-navy-950 text-white text-[8px] font-bold border border-white"
               style={{ marginLeft: i > 0 ? '-4px' : '0' }}
               title={d}
             >
-              {d.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+              {d.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
             </div>
           ))}
-          {route.associated_drivers.length > 3 && (
-            <span className="text-[9px] text-navy-400 ml-1">+{route.associated_drivers.length - 3}</span>
+          {(route.associated_drivers || []).length > 3 && (
+            <span className="text-[9px] text-navy-400 ml-1">+{(route.associated_drivers || []).length - 3}</span>
           )}
-          {route.associated_drivers.length === 0 && (
+          {(route.associated_drivers || []).length === 0 && (
             <span className="text-[10px] text-amber-600 font-medium">Sem motoristas</span>
           )}
         </div>
         <p className="text-[10px] font-semibold text-teal-600">
-          R$ {(route.revenue_this_month / 1000).toFixed(1)}k/mês
+          R$ {((route.revenue_this_month || 0) / 1000).toFixed(1)}k/mês
         </p>
       </div>
     </button>

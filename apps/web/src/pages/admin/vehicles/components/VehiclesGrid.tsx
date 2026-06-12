@@ -1,13 +1,11 @@
-import type { MockVehicle, VehicleStatus, VehicleType } from '@/mocks/admin-vehicles';
-
 interface VehiclesGridProps {
-  vehicles: MockVehicle[];
-  onSelect: (v: MockVehicle) => void;
+  vehicles: any[];
+  onSelect: (v: any) => void;
   selectedId?: string;
   loading?: boolean;
 }
 
-const statusConfig: Record<VehicleStatus, { label: string; dot: string; badge: string; ring: string }> = {
+const statusConfig: Record<string, { label: string; dot: string; badge: string; ring: string }> = {
   available:     { label: 'Disponível',    dot: 'bg-teal-500',  badge: 'bg-teal-50 text-teal-700 border-teal-200',    ring: 'ring-teal-200' },
   in_operation:  { label: 'Em Operação',   dot: 'bg-navy-500',  badge: 'bg-navy-50 text-navy-700 border-navy-200',     ring: 'ring-navy-200' },
   maintenance:   { label: 'Manutenção',    dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-700 border-amber-200',  ring: 'ring-amber-200' },
@@ -16,7 +14,7 @@ const statusConfig: Record<VehicleStatus, { label: string; dot: string; badge: s
   attention:     { label: 'Atenção',       dot: 'bg-red-400',   badge: 'bg-red-50 text-red-600 border-red-200',         ring: 'ring-red-200' },
 };
 
-const typeIcon: Record<VehicleType, string> = {
+const typeIcon: Record<string, string> = {
   van:      'ri-car-line',
   sprinter: 'ri-bus-2-line',
   sedan:    'ri-taxi-line',
@@ -24,7 +22,7 @@ const typeIcon: Record<VehicleType, string> = {
   bus:      'ri-bus-line',
 };
 
-const typeLabel: Record<VehicleType, string> = {
+const typeLabel: Record<string, string> = {
   van: 'Van', sprinter: 'Sprinter', sedan: 'Sedã', suv: 'SUV', bus: 'Ônibus',
 };
 
@@ -72,7 +70,7 @@ function SkeletonCard() {
   );
 }
 
-function VehicleCard({ vehicle, onSelect, isSelected }: { vehicle: MockVehicle; onSelect: (v: MockVehicle) => void; isSelected: boolean }) {
+function VehicleCard({ vehicle, onSelect, isSelected }: { vehicle: any; onSelect: (v: any) => void; isSelected: boolean }) {
   const s = statusConfig[vehicle.status];
   const mc = maintConfig[vehicle.maintenance_status];
   const icon = typeIcon[vehicle.type];

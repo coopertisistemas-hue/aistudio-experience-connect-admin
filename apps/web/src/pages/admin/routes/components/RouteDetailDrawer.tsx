@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { MockRoute, RouteStatus, RouteCategory } from '@/mocks/admin-routes';
 
 interface RouteDetailDrawerProps {
-  route: MockRoute;
+  route: any;
   onClose: () => void;
   onCreateTransfer?: (routeId: string) => void;
 }
@@ -18,7 +17,7 @@ const tabs: { id: DrawerTab; label: string; icon: string }[] = [
   { id: 'historico',  label: 'Histórico',   icon: 'ri-bar-chart-line' },
 ];
 
-const statusConfig: Record<RouteStatus, { label: string; badge: string; dot: string }> = {
+const statusConfig: Record<string, { label: string; badge: string; dot: string }> = {
   active:       { label: 'Ativa',         badge: 'bg-teal-50 text-teal-700 border-teal-200',    dot: 'bg-teal-500' },
   inactive:     { label: 'Inativa',       badge: 'bg-stone-100 text-stone-600 border-stone-200', dot: 'bg-stone-400' },
   paused:       { label: 'Pausada',       badge: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500' },
@@ -26,7 +25,7 @@ const statusConfig: Record<RouteStatus, { label: string; badge: string; dot: str
   attention:    { label: 'Atenção',       badge: 'bg-red-50 text-red-600 border-red-200',         dot: 'bg-red-400' },
 };
 
-const categoryConfig: Record<RouteCategory, { label: string; icon: string }> = {
+const categoryConfig: Record<string, { label: string; icon: string }> = {
   airport:   { label: 'Aeroporto',   icon: 'ri-flight-takeoff-line' },
   hotel:     { label: 'Hotel',       icon: 'ri-hotel-line' },
   tourism:   { label: 'Turismo',     icon: 'ri-compass-discover-line' },
@@ -45,11 +44,14 @@ const tripStatusConfig: Record<string, { label: string; dot: string }> = {
 
 export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: RouteDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTab>('perfil');
-  const s = statusConfig[route.status];
-  const cat = categoryConfig[route.category];
-  const durationLabel = route.duration_min >= 60
-    ? `${Math.floor(route.duration_min / 60)}h ${route.duration_min % 60 > 0 ? `${route.duration_min % 60}min` : ''}`
-    : `${route.duration_min}min`;
+  const routeStatus = route.status || (route.is_active ? 'active' : 'inactive');
+  const routeCategory = route.category_name || route.category || 'transfer';
+  const s = statusConfig[routeStatus] || statusConfig.active;
+  const cat = categoryConfig[routeCategory] || categoryConfig.transfer;
+  const durationMin = route.duration_min || 0;
+  const durationLabel = durationMin >= 60
+    ? `${Math.floor(durationMin / 60)}h ${durationMin % 60 > 0 ? `${durationMin % 60}min` : ''}`
+    : `${durationMin}min`;
 
   const scrollTo = (id: DrawerTab) => {
     setActiveTab(id);
@@ -57,8 +59,9 @@ export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: 
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const totalRevenue = route.monthly_history.reduce((s, h) => s + h.revenue, 0);
-  const totalTransfersHistory = route.monthly_history.reduce((s, h) => s + h.transfers, 0);
+  const monthlyHistory = route.monthly_history || [];
+  const totalRevenue = monthlyHistory.reduce((s: number, h: any) => s + (h.revenue || 0), 0);
+  const totalTransfersHistory = monthlyHistory.reduce((s: number, h: any) => s + (h.transfers || 0), 0);
 
   return (
     <>

@@ -1,21 +1,20 @@
 import { useMemo } from 'react';
-import type { MockRoute } from '@/mocks/admin-routes';
 
 interface RoutesSummaryStripProps {
-  routes: MockRoute[];
+  routes: any[];
 }
 
 export default function RoutesSummaryStrip({ routes }: RoutesSummaryStripProps) {
   const kpis = useMemo(() => {
-    const active = routes.filter((r) => r.is_active);
-    const totalToday = routes.reduce((s, r) => s + r.transfers_today, 0);
-    const topRoute = [...routes].sort((a, b) => b.transfers_total - a.transfers_total)[0];
+    const active = routes.filter((r: any) => r.is_active);
+    const totalToday = routes.reduce((s: number, r: any) => s + (r.transfers_today || 0), 0);
+    const topRoute = [...routes].sort((a: any, b: any) => (b.transfers_total || 0) - (a.transfers_total || 0))[0];
     const avgDuration = active.length
-      ? Math.round(active.reduce((s, r) => s + r.duration_min, 0) / active.length)
+      ? Math.round(active.reduce((s: number, r: any) => s + (r.duration_min || 0), 0) / active.length)
       : 0;
-    const totalRevMonth = routes.reduce((s, r) => s + r.revenue_this_month, 0);
+    const totalRevMonth = routes.reduce((s: number, r: any) => s + (r.revenue_this_month || 0), 0);
     const avgOcc = active.length
-      ? Math.round(active.reduce((s, r) => s + r.avg_occupancy_pct, 0) / active.length)
+      ? Math.round(active.reduce((s: number, r: any) => s + (r.avg_occupancy_pct || 0), 0) / active.length)
       : 0;
 
     return [

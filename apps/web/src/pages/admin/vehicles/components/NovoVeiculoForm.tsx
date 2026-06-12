@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateVehicle } from '@/hooks/useVehicles';
+import { useDrivers } from '@/hooks/useDrivers';
 
 interface NovoVeiculoFormProps {
   onClose: () => void;
@@ -13,13 +16,7 @@ const vehicleTypes = [
   { value: 'bus',      label: 'Ônibus',   icon: 'ri-bus-line',     desc: '30+ passageiros' },
 ];
 
-const drivers = [
-  { id: 'drv-1', name: 'João Silva' },
-  { id: 'drv-2', name: 'Carlos Mendes' },
-  { id: 'drv-3', name: 'Ana Ferreira' },
-  { id: 'drv-4', name: 'Pedro Rocha' },
-  { id: 'drv-5', name: 'Roberto Lima' },
-];
+// `drivers` loaded via useDrivers() hook inside the component
 
 const statusOptions = [
   { value: 'available',    label: 'Disponível',     desc: 'Pronto para operar' },
@@ -51,6 +48,10 @@ const INITIAL: FormData = {
 };
 
 export default function NovoVeiculoForm({ onClose, onSuccess }: NovoVeiculoFormProps) {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const createVehicle = useCreateVehicle();
+  const { data: driverList = [] } = useDrivers(tenantId);
   const [form, setForm] = useState<FormData>(INITIAL);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -73,17 +74,48 @@ export default function NovoVeiculoForm({ onClose, onSuccess }: NovoVeiculoFormP
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSaving(false);
-    onSuccess?.();
-    onClose();
+    try {
+      await createVehicle.mutateAsync({
+        tenant_id: tenantId,
+        name: form.name,
+        type: form.type,
+        plate: form.plate || null,
+        model: form.model || null,
+        capacity: Number(form.capacity),
+        color: form.color || null,
+        status: form.status,
+        notes: form.notes || null,
+        default_driver_id: form.driver_id || null,
+      } as any);
+      onSuccess?.();
+      onClose();
+    } catch {
+      setSaving(false);
+    }
   };
 
   const handleDraft = async () => {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    onClose();
+    try {
+      await createVehicle.mutateAsync({
+        tenant_id: tenantId,
+        name: form.name,
+        type: form.type,
+        plate: form.plate || null,
+        model: form.model || null,
+        capacity: Number(form.capacity),
+        color: form.color || null,
+        status: 'inactive',
+        notes: form.notes || null,
+        default_driver_id: form.driver_id || null,
+      } as any);
+      onSuccess?.();
+      onClose();
+    } catch {
+      setSaving(false);
+    }
   };
 
   return (
@@ -305,8 +337,8 @@ export default function NovoVeiculoForm({ onClose, onSuccess }: NovoVeiculoFormP
                 className="w-full h-10 px-3 text-sm bg-white border border-sand-200 rounded-xl text-navy-700 focus:outline-none focus:border-teal-300 transition-colors cursor-pointer"
               >
                 <option value="">Selecionar motorista...</option>
-                {drivers.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                {driverList.map((d) => (
+                  <option key={d.id} value={d.id}>{d.full_name}</option>
                 ))}
               </select>
               <p className="text-[10px] text-navy-400 mt-1.5">

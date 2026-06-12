@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import type { VehicleStatus, VehicleType } from '@/mocks/admin-vehicles';
+
+type VehicleStatus = 'available' | 'in_operation' | 'reserved' | 'attention' | 'maintenance' | 'inactive';
+type VehicleType = 'van' | 'sprinter' | 'sedan' | 'suv' | 'bus';
 
 export interface VehiclesFilters {
   search: string;

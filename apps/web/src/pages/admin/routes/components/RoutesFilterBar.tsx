@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import type { RouteStatus, RouteCategory } from '@/mocks/admin-routes';
+
+type RouteStatus = 'active' | 'high_demand' | 'attention' | 'paused' | 'inactive';
+type RouteCategory = 'airport' | 'tourism' | 'hotel' | 'corporate' | 'transfer';
 
 export interface RoutesFilters {
   search: string;

@@ -1,16 +1,14 @@
-import type { MockDriver } from '@/mocks/admin-drivers';
-
 interface DriversSummaryStripProps {
-  drivers: MockDriver[];
+  drivers: any[];
 }
 
 export default function DriversSummaryStrip({ drivers }: DriversSummaryStripProps) {
-  const ativos = drivers.filter((d) => d.status !== 'pending').length;
-  const emServico = drivers.filter((d) => ['on_trip', 'available'].includes(d.status)).length;
-  const disponiveis = drivers.filter((d) => d.status === 'available').length;
-  const emTransfer = drivers.filter((d) => d.status === 'on_trip').length;
-  const offline = drivers.filter((d) => ['off_duty', 'paused', 'unavailable'].includes(d.status)).length;
-  const ocorrencias = drivers.reduce((s, d) => s + d.performance.incidents, 0);
+  const ativos = drivers.filter((d: any) => d.status !== 'pending').length;
+  const emServico = drivers.filter((d: any) => ['on_trip', 'available'].includes(d.status)).length;
+  const disponiveis = drivers.filter((d: any) => d.status === 'available').length;
+  const emTransfer = drivers.filter((d: any) => d.status === 'on_trip').length;
+  const offline = drivers.filter((d: any) => ['off_duty', 'paused', 'unavailable'].includes(d.status)).length;
+  const ocorrencias = drivers.reduce((s: number, d: any) => s + (d.performance?.incidents || 0), 0);
 
   const kpis = [
     {

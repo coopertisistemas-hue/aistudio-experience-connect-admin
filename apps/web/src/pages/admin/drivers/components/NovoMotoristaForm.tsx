@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateDriver } from '@/hooks/useDrivers';
+import { useVehicles } from '@/hooks/useVehicles';
 
 interface NovoMotoristaFormProps {
   onClose: () => void;
@@ -16,14 +19,6 @@ const sections: { id: FormSection; label: string; icon: string }[] = [
 
 const licenseTypes = ['B', 'C', 'D', 'E', 'AB', 'AD'];
 
-const vehicleOptions = [
-  { value: '', label: 'Nenhum (vincular depois)' },
-  { value: 'drv-v1', label: 'Mercedes Vito — ABC-1D23 (Van Premium)' },
-  { value: 'drv-v2', label: 'Toyota Hiace — DEF-2E34 (Minibus)' },
-  { value: 'drv-v3', label: 'Sprinter Premium — GHI-3F45 (Van Executiva)' },
-  { value: 'drv-v4', label: 'Van Executive — JKL-4G56 (Van Executiva)' },
-];
-
 interface FormErrors {
   fullName?: string;
   email?: string;
@@ -32,11 +27,17 @@ interface FormErrors {
 }
 
 export default function NovoMotoristaForm({ onClose, onSave }: NovoMotoristaFormProps) {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const createDriver = useCreateDriver();
+  const { data: vehicles = [] } = useVehicles(tenantId);
+
   const [activeSection, setActiveSection] = useState<FormSection>('pessoal');
   const [saving, setSaving] = useState(false);
   const [sendInvite, setSendInvite] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
   const [notes, setNotes] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     fullName: '',
@@ -46,6 +47,14 @@ export default function NovoMotoristaForm({ onClose, onSave }: NovoMotoristaForm
     vehicle: '',
     notes: '',
   });
+
+  const vehicleOptions = [
+    { value: '', label: 'Nenhum (vincular depois)' },
+    ...vehicles.map((v) => ({
+      value: v.id,
+      label: `${v.name} — ${v.plate || 's/ placa'} (${v.type})`,
+    })),
+  ];
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -58,13 +67,27 @@ export default function NovoMotoristaForm({ onClose, onSave }: NovoMotoristaForm
     return Object.keys(errs).length === 0;
   };
 
-  const handleSave = (withInvite: boolean) => {
+  const handleSave = async (withInvite: boolean) => {
     if (!validate()) return;
     setSaving(true);
-    setTimeout(() => {
+    setSaveError(null);
+    try {
+      await createDriver.mutateAsync({
+        tenant_id: tenantId,
+        name: form.fullName,
+        email: form.email || null,
+        phone: form.phone || null,
+        license_type: form.licenseType,
+        default_vehicle_id: form.vehicle || null,
+        notes: notes || null,
+        status: 'pending',
+      });
       setSaving(false);
       onSave(withInvite);
-    }, 1200);
+    } catch (err) {
+      setSaving(false);
+      setSaveError('Erro ao salvar motorista. Tente novamente.');
+    }
   };
 
   const notesMax = 500;
@@ -280,6 +303,14 @@ export default function NovoMotoristaForm({ onClose, onSave }: NovoMotoristaForm
           </div>
 
         </div>
+
+        {/* Error message */}
+        {saveError && (
+          <div className="px-5 py-3 bg-red-50 border-t border-red-200 flex items-center gap-2 flex-shrink-0">
+            <i className="ri-error-warning-line text-red-500 text-sm"></i>
+            <span className="text-xs text-red-700">{saveError}</span>
+          </div>
+        )}
 
         {/* Sticky action bar */}
         <div className="px-5 py-4 border-t border-sand-200 flex gap-2 flex-shrink-0 bg-white">

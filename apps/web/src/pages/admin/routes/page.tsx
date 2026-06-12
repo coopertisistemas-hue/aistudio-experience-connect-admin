@@ -1,7 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { mockRoutes } from '@/mocks/admin-routes';
-import type { MockRoute, RouteStatus } from '@/mocks/admin-routes';
+import { useState, useMemo, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useRoutes, useCreateRoute } from '@/hooks/useRoutes';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
+import { TableSkeleton, KPISkeleton } from '@/pages/admin/components/ui/LoadingSkeleton';
+import EmptyState from '@/pages/admin/components/ui/EmptyState';
 import RoutesSummaryStrip from './components/RoutesSummaryStrip';
 import RoutesFilterBar from './components/RoutesFilterBar';
 import type { RoutesFilters } from './components/RoutesFilterBar';
@@ -24,50 +26,17 @@ const INITIAL_FILTERS: RoutesFilters = {
   priceMax: '',
 };
 
-function applyFilters(routes: MockRoute[], f: RoutesFilters): MockRoute[] {
-  return routes.filter((r) => {
-    if (f.status !== 'all' && r.status !== f.status) return false;
-    if (f.category !== 'all' && r.category !== f.category) return false;
-    if (f.demand !== 'all' && r.demand_level !== f.demand) return false;
-    if (f.priceMin && r.base_price < Number(f.priceMin)) return false;
-    if (f.priceMax && r.base_price > Number(f.priceMax)) return false;
-    if (f.search) {
-      const q = f.search.toLowerCase();
-      if (
-        !r.name.toLowerCase().includes(q) &&
-        !r.origin_name.toLowerCase().includes(q) &&
-        !r.destination_name.toLowerCase().includes(q) &&
-        !r.category.toLowerCase().includes(q)
-      ) return false;
-    }
-    return true;
-  });
-}
-
 export default function RoutesPage() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const { data: routes = [], isLoading, error } = useRoutes(tenantId);
+  const createRoute = useCreateRoute();
+
   const [filters, setFilters] = useState<RoutesFilters>(INITIAL_FILTERS);
-  const [selectedRoute, setSelectedRoute] = useState<MockRoute | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showForm) { setShowForm(false); return; }
-        if (selectedRoute) setSelectedRoute(null);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [showForm, selectedRoute]);
-
-  const filtered = useMemo(() => applyFilters(mockRoutes, filters), [filters]);
 
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
@@ -75,12 +44,36 @@ export default function RoutesPage() {
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  // Alerts
-  const attentionRoutes = mockRoutes.filter((r) => r.status === 'attention');
-  const pausedRoutes = mockRoutes.filter((r) => r.status === 'paused');
-  const highDemandRoutes = mockRoutes.filter((r) => r.status === 'high_demand');
+  const filtered = useMemo(() => {
+    return routes.filter((r: any) => {
+      if (filters.status !== 'all' && r.status !== filters.status) return false;
+      if (filters.category !== 'all' && r.category_name !== filters.category) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        if (
+          !r.name.toLowerCase().includes(q) &&
+          !(r.origin || '').toLowerCase().includes(q) &&
+          !(r.destination || '').toLowerCase().includes(q) &&
+          !(r.category_name || '').toLowerCase().includes(q)
+        ) return false;
+      }
+      return true;
+    });
+  }, [routes, filters]);
 
-  const totalTransfersToday = mockRoutes.reduce((s, r) => s + r.transfers_today, 0);
+  if (error) {
+    return (
+      <div className="p-4 md:p-6">
+        <EmptyState
+          icon="ri-error-warning-line"
+          title="Erro ao carregar rotas"
+          description="Não foi possível carregar os dados. Tente novamente."
+        />
+      </div>
+    );
+  }
+
+  const activeRoutes = routes.filter((r: any) => r.is_active);
 
   return (
     <div className="p-4 md:p-6">
@@ -88,16 +81,9 @@ export default function RoutesPage() {
         icon="ri-route-line"
         title="Rotas"
         subtitle="Catálogo operacional de rotas, destinos e planejamento de transfers."
-        badge={`${mockRoutes.filter((r) => r.is_active).length} ativas`}
+        badge={`${activeRoutes.length} ativas`}
         action={
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="flex items-center gap-2 h-9 px-3.5 bg-white hover:bg-sand-50 text-navy-600 text-sm font-medium rounded-xl border border-sand-200 transition-colors cursor-pointer whitespace-nowrap"
-            >
-              <i className="ri-download-line text-sm"></i>
-              <span className="hidden sm:inline">Exportar</span>
-            </button>
             <button
               type="button"
               onClick={() => setShowForm(true)}
@@ -110,91 +96,44 @@ export default function RoutesPage() {
         }
       />
 
-      {/* Alerts */}
-      {attentionRoutes.length > 0 && (
-        <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-100 flex-shrink-0">
-            <i className="ri-alert-line text-red-500 text-sm"></i>
+      {isLoading ? (
+        <div className="space-y-4">
+          <KPISkeleton />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white border border-sand-200 rounded-2xl p-5 animate-pulse">
+                <div className="h-4 bg-sand-200 rounded-lg w-2/3 mb-3" />
+                <div className="h-14 bg-sand-100 rounded-xl mb-4" />
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {[...Array(4)].map((_, j) => <div key={j} className="h-10 bg-sand-100 rounded-xl" />)}
+                </div>
+                <div className="h-8 bg-sand-100 rounded-xl" />
+              </div>
+            ))}
           </div>
-          <p className="text-xs font-semibold text-red-700 flex-1">
-            {attentionRoutes.map((r) => r.name).join(', ')} — requer atenção operacional
-          </p>
-          <button
-            type="button"
-            onClick={() => setFilters((p) => ({ ...p, status: 'attention' }))}
-            className="text-[11px] font-semibold text-red-600 bg-red-100 hover:bg-red-200 border border-red-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-          >
-            Ver
-          </button>
         </div>
+      ) : (
+        <>
+          {/* KPI Strip */}
+          <RoutesSummaryStrip routes={routes} />
+
+          {/* Filters */}
+          <RoutesFilterBar
+            filters={filters}
+            onChange={setFilters}
+            total={routes.length}
+            filtered={filtered.length}
+          />
+
+          {/* Grid */}
+          <RoutesGrid
+            routes={filtered}
+            onSelect={setSelectedRoute}
+            selectedId={selectedRoute?.id}
+            loading={false}
+          />
+        </>
       )}
-
-      {highDemandRoutes.length > 0 && (
-        <div className="mb-4 flex items-center gap-3 bg-navy-50 border border-navy-200 rounded-xl px-4 py-3">
-          <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-navy-100 flex-shrink-0">
-            <i className="ri-fire-line text-navy-600 text-sm"></i>
-          </div>
-          <p className="text-xs text-navy-700 flex-1">
-            <span className="font-semibold">{highDemandRoutes.length} rota{highDemandRoutes.length > 1 ? 's' : ''} em alta demanda</span>
-            {' — '}{highDemandRoutes.map((r) => r.name).join(', ')}
-          </p>
-          <button
-            type="button"
-            onClick={() => setFilters((p) => ({ ...p, status: 'high_demand' }))}
-            className="text-[11px] font-semibold text-navy-700 bg-navy-100 hover:bg-navy-200 border border-navy-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-          >
-            Ver
-          </button>
-        </div>
-      )}
-
-      {pausedRoutes.length > 0 && !attentionRoutes.length && (
-        <div className="mb-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 flex-shrink-0">
-            <i className="ri-pause-circle-line text-amber-500 text-sm"></i>
-          </div>
-          <p className="text-xs text-amber-700 flex-1">
-            <span className="font-semibold">{pausedRoutes.length} rota{pausedRoutes.length > 1 ? 's' : ''} pausada{pausedRoutes.length > 1 ? 's' : ''}</span>
-            {' — '}{pausedRoutes.map((r) => r.name).join(', ')}
-          </p>
-          <button
-            type="button"
-            onClick={() => setFilters((p) => ({ ...p, status: 'paused' }))}
-            className="text-[11px] font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-          >
-            Ver
-          </button>
-        </div>
-      )}
-
-      {/* Today summary chip */}
-      {totalTransfersToday > 0 && (
-        <div className="mb-5 flex items-center gap-2 bg-teal-50 border border-teal-200 rounded-xl px-4 py-2.5">
-          <i className="ri-car-line text-teal-500 text-sm flex-shrink-0"></i>
-          <p className="text-xs text-teal-700">
-            <span className="font-bold">{totalTransfersToday} transfers</span> em andamento hoje em todas as rotas
-          </p>
-        </div>
-      )}
-
-      {/* KPI Strip */}
-      <RoutesSummaryStrip routes={mockRoutes} />
-
-      {/* Filters */}
-      <RoutesFilterBar
-        filters={filters}
-        onChange={setFilters}
-        total={mockRoutes.length}
-        filtered={filtered.length}
-      />
-
-      {/* Grid */}
-      <RoutesGrid
-        routes={filtered}
-        onSelect={setSelectedRoute}
-        selectedId={selectedRoute?.id}
-        loading={loading}
-      />
 
       {/* Detail Drawer */}
       {selectedRoute && (

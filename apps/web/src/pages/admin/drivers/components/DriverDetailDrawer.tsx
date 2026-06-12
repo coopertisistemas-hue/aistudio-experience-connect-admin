@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { MockDriver, DriverStatus, DayAvailability } from '@/mocks/admin-drivers';
 
 interface DriverDetailDrawerProps {
-  driver: MockDriver;
+  driver: any;
   onClose: () => void;
 }
 
@@ -17,7 +16,7 @@ const tabs: { id: DrawerTab; label: string; icon: string }[] = [
   { id: 'app',           label: 'App',            icon: 'ri-smartphone-line' },
 ];
 
-const statusConfig: Record<DriverStatus, { label: string; badge: string; dot: string }> = {
+const statusConfig: Record<string, { label: string; badge: string; dot: string }> = {
   available:   { label: 'Disponível',   badge: 'bg-teal-50 text-teal-700 border-teal-200',    dot: 'bg-teal-500' },
   on_trip:     { label: 'Em Transfer',  badge: 'bg-navy-50 text-navy-700 border-navy-200',     dot: 'bg-navy-500' },
   off_duty:    { label: 'Offline',      badge: 'bg-stone-100 text-stone-600 border-stone-200', dot: 'bg-stone-400' },
@@ -33,7 +32,7 @@ const tripStatusConfig: Record<string, { label: string; dot: string }> = {
   scheduled:      { label: 'Agendado',          dot: 'bg-stone-400' },
 };
 
-const availabilityConfig: Record<DayAvailability, { label: string; bg: string; text: string }> = {
+const availabilityConfig: Record<string, { label: string; bg: string; text: string }> = {
   available: { label: 'Disponível', bg: 'bg-teal-50 border-teal-200',   text: 'text-teal-700' },
   partial:   { label: 'Parcial',    bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
   off:       { label: 'Folga',      bg: 'bg-stone-100 border-stone-200', text: 'text-stone-500' },

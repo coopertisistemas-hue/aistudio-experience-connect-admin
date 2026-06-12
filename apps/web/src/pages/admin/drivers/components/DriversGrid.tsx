@@ -1,13 +1,11 @@
-import type { MockDriver, DriverStatus } from '@/mocks/admin-drivers';
-
 interface DriversGridProps {
-  drivers: MockDriver[];
-  onSelect: (d: MockDriver) => void;
+  drivers: any[];
+  onSelect: (d: any) => void;
   selectedId?: string;
   loading?: boolean;
 }
 
-const statusConfig: Record<DriverStatus, { label: string; dot: string; badge: string; ring: string }> = {
+const statusConfig: Record<string, { label: string; dot: string; badge: string; ring: string }> = {
   available:   { label: 'Disponível',   dot: 'bg-teal-500',  badge: 'bg-teal-50 text-teal-700 border-teal-200',    ring: 'ring-teal-300' },
   on_trip:     { label: 'Em Transfer',  dot: 'bg-navy-500',  badge: 'bg-navy-50 text-navy-700 border-navy-200',     ring: 'ring-navy-300' },
   off_duty:    { label: 'Offline',      dot: 'bg-stone-400', badge: 'bg-stone-100 text-stone-600 border-stone-200', ring: 'ring-stone-300' },
@@ -52,7 +50,7 @@ function SkeletonCard() {
   );
 }
 
-function DriverCard({ driver, onSelect, isSelected }: { driver: MockDriver; onSelect: (d: MockDriver) => void; isSelected: boolean }) {
+function DriverCard({ driver, onSelect, isSelected }: { driver: any; onSelect: (d: any) => void; isSelected: boolean }) {
   const s = statusConfig[driver.status];
   const lastSeen = driver.last_activity ? (() => {
     const diff = Math.round((Date.now() - new Date(driver.last_activity!).getTime()) / 60000);

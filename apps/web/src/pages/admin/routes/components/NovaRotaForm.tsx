@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateRoute } from '@/hooks/useRoutes';
 
 interface NovaRotaFormProps {
   onClose: () => void;
@@ -60,9 +63,26 @@ const INITIAL: FormData = {
 };
 
 export default function NovaRotaForm({ onClose, onSuccess }: NovaRotaFormProps) {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const createRoute = useCreateRoute();
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
   const [form, setForm] = useState<FormData>(INITIAL);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+
+  useEffect(() => {
+    if (!tenantId) return;
+    supabase
+      .from('route_categories')
+      .select('id, slug')
+      .eq('tenant_id', tenantId)
+      .then(({ data }) => {
+        const map: Record<string, string> = {};
+        (data || []).forEach((c: any) => { map[c.slug] = c.id; });
+        setCategoryMap(map);
+      });
+  }, [tenantId]);
 
   const set = (key: keyof FormData, value: string) => {
     setForm((p) => ({ ...p, [key]: value }));
@@ -84,17 +104,50 @@ export default function NovaRotaForm({ onClose, onSuccess }: NovaRotaFormProps) 
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSaving(false);
-    onSuccess?.();
-    onClose();
+    try {
+      await createRoute.mutateAsync({
+        tenant_id: tenantId,
+        name: form.name,
+        slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
+        origin: form.origin_name,
+        destination: form.destination_name,
+        distance_km: Number(form.distance_km),
+        duration_min: Number(form.duration_min),
+        base_price: Number(form.base_price),
+        is_active: form.status === 'active',
+        category_id: categoryMap[form.category] || null,
+        operational_notes: form.notes || null,
+      } as any);
+      onSuccess?.();
+      onClose();
+    } catch {
+      setSaving(false);
+    }
   };
 
   const handleDraft = async () => {
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    onClose();
+    try {
+      await createRoute.mutateAsync({
+        tenant_id: tenantId,
+        name: form.name,
+        slug: form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'unnamed',
+        origin: form.origin_name,
+        destination: form.destination_name,
+        distance_km: Number(form.distance_km),
+        duration_min: Number(form.duration_min),
+        base_price: Number(form.base_price),
+        is_active: false,
+        category_id: categoryMap[form.category] || null,
+        operational_notes: form.notes || null,
+      } as any);
+      onSuccess?.();
+      onClose();
+    } catch {
+      setSaving(false);
+    }
   };
 
   const durationHours = Number(form.duration_min) >= 60

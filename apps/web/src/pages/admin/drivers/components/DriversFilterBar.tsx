@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { DriverStatus } from '@/mocks/admin-drivers';
+
+type DriverStatus = 'available' | 'on_trip' | 'paused' | 'off_duty' | 'unavailable' | 'pending';
 
 export interface DriversFilters {
   search: string;

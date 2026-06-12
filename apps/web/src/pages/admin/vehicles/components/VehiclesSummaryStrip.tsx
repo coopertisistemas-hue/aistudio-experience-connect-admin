@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
-import type { MockVehicle } from '@/mocks/admin-vehicles';
 
 interface VehiclesSummaryStripProps {
-  vehicles: MockVehicle[];
+  vehicles: any[];
 }
 
 export default function VehiclesSummaryStrip({ vehicles }: VehiclesSummaryStripProps) {
   const kpis = useMemo(() => {
-    const active = vehicles.filter((v) => v.status !== 'inactive');
-    const inOp = vehicles.filter((v) => v.status === 'in_operation');
-    const avail = vehicles.filter((v) => v.status === 'available');
-    const maintenance = vehicles.filter((v) => v.status === 'maintenance');
-    const totalCap = active.reduce((sum, v) => sum + v.capacity, 0);
-    const totalOccupied = inOp.reduce((sum, v) => sum + v.current_occupancy, 0);
-    const totalInOpCap = inOp.reduce((sum, v) => sum + v.capacity, 0);
+    const active = vehicles.filter((v: any) => v.status !== 'inactive');
+    const inOp = vehicles.filter((v: any) => v.status === 'in_operation');
+    const avail = vehicles.filter((v: any) => v.status === 'available');
+    const maintenance = vehicles.filter((v: any) => v.status === 'maintenance');
+    const totalCap = active.reduce((sum: number, v: any) => sum + (v.capacity || 0), 0);
+    const totalOccupied = inOp.reduce((sum: number, v: any) => sum + (v.current_occupancy || 0), 0);
+    const totalInOpCap = inOp.reduce((sum: number, v: any) => sum + (v.capacity || 0), 0);
     const avgOcc = totalInOpCap > 0 ? Math.round((totalOccupied / totalInOpCap) * 100) : 0;
 
     return [
