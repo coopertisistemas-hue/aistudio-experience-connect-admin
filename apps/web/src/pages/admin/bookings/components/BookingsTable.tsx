@@ -1,12 +1,12 @@
-import type { MockBooking } from '@/mocks/admin-bookings';
+import type { BookingWithDetails } from '@/services/bookings';
 import StatusBadge from '@/pages/admin/components/ui/StatusBadge';
 import EmptyState from '@/pages/admin/components/ui/EmptyState';
 import { TableSkeleton } from '@/pages/admin/components/ui/LoadingSkeleton';
 
 interface BookingsTableProps {
-  bookings: MockBooking[];
+  bookings: BookingWithDetails[];
   loading?: boolean;
-  onSelect: (booking: MockBooking) => void;
+  onSelect: (booking: BookingWithDetails) => void;
   selectedId?: string | null;
 }
 

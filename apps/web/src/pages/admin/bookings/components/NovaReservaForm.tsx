@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useCreateBookingHold } from '@/hooks/useBookings';
 
 interface NovaReservaFormProps {
   onClose: () => void;
   onSave: () => void;
+  tenantId: string;
 }
 
 interface FormData {
@@ -84,11 +86,12 @@ const routeOptions = [
   { value: 'r5', label: 'Rio → Búzios Premium' },
 ];
 
-export default function NovaReservaForm({ onClose, onSave }: NovaReservaFormProps) {
+export default function NovaReservaForm({ onClose, onSave, tenantId }: NovaReservaFormProps) {
   const [form, setForm] = useState<FormData>(defaultForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [activeSection, setActiveSection] = useState('dados');
   const [saving, setSaving] = useState(false);
+  const createHold = useCreateBookingHold();
 
   const set = (key: keyof FormData, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -118,7 +121,6 @@ export default function NovaReservaForm({ onClose, onSave }: NovaReservaFormProp
 
   const handleSave = async (asDraft = false) => {
     if (!asDraft && !validate()) {
-      // Scroll to first error section
       if (errors.passenger_name || errors.passenger_email || errors.passenger_phone) {
         scrollToSection('passageiro');
       } else if (errors.pickup_location || errors.dropoff_location) {
@@ -129,10 +131,23 @@ export default function NovaReservaForm({ onClose, onSave }: NovaReservaFormProp
       return;
     }
     setSaving(true);
-    // Placeholder — real implementation uses Supabase insert
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    onSave();
+    try {
+      await createHold.mutateAsync({
+        tenant_id: tenantId,
+        vehicle_slot_id: '',
+        passenger_count: Number(form.passenger_count) || 1,
+        scheduled_at: `${form.scheduled_date}T${form.scheduled_time}:00`,
+        scheduled_end_at: `${form.scheduled_date}T${form.scheduled_time}:00`,
+        pickup_location: form.pickup_location || undefined,
+        dropoff_location: form.dropoff_location || undefined,
+        notes: form.notes || undefined,
+      });
+      onSave();
+    } catch {
+      setErrors((e) => ({ ...e, _form: 'Erro ao criar reserva. Tente novamente.' }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputCls = (field: keyof FormData) =>

@@ -1,8 +1,8 @@
 # ORCHESTRATOR_CONTEXT.md
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** ACTIVE  
-**Updated:** 2026-06-11 (v2)  
+**Updated:** 2026-06-12 (v3)  
 
 ---
 
@@ -10,23 +10,24 @@
 
 | Field | Value |
 |-------|-------|
-| Sprint ID | **S0.2** |
-| Sprint Name | Foundation Repairs |
+| Sprint ID | **S1.2** |
+| Sprint Name | AuthProvider & Supabase Unification |
 | Status | **COMPLETED** |
-| Commit | `080c4c7` |
+| Commit | `481dafa` |
 | Branch | `main` |
 
 ---
 
-## Sprint Completed
+## Sprints Completed
 
-| Field | Value |
-|-------|-------|
-| Sprint ID | **S0.1** |
-| Sprint Name | Governance Inventory Normalization |
-| Status | **COMPLETED** |
-| Date | 2026-06-11 |
-| Deliverable | `docs/EXECUTION/GOVERNANCE_INVENTORY_REPORT.md` |
+| Sprint | Name | Status | Date | Commit |
+|--------|------|--------|------|--------|
+| S0.2 | Foundation Repairs | **COMPLETED** | 2026-06-04 | `080c4c7` |
+| S0.1 | Governance Inventory Normalization | **COMPLETED** | 2026-06-11 | `8327fb3` |
+| S3 | Lint Cleanup & Type Hardening | **COMPLETED** | 2026-06-11 | `c736976` |
+| S1.1.1 | Tenant Resolution & Role Guards | **COMPLETED** | 2026-06-11 | `a8de7bb` |
+| S1.1.2 | OTP Login & Invite Flow | **COMPLETED** | 2026-06-11 | `91e0120` |
+| S1.2 | AuthProvider & Supabase Unification | **COMPLETED** | 2026-06-04 | `481dafa` |
 
 ---
 
@@ -34,11 +35,11 @@
 
 | Field | Value |
 |-------|-------|
-| Sprint ID | **S3** |
-| Sprint Name | Lint Cleanup & Type Hardening |
-| Status | **COMPLETED** (0 lint errors, 0 type errors) |
+| Sprint ID | **TBD** |
+| Sprint Name | A definir — próximo bloco Core |
+| Status | PENDING |
 | Priority | HIGH |
-| Scope | Repo ja estava limpo. Sprint marcado como COMPLETED. |
+| Scope | Aguardando definição do roadmap |
 
 ---
 
@@ -65,6 +66,9 @@
 | 2026-06-11 | Sprint 0.1.1 completed | Stripe/firebase removidos, TanStack Query/Zustand/RHF/Zod instalados. Gates: ✅ typecheck, ✅ lint, ✅ build |
 | 2026-06-11 | Sprint 0.1.2 partial | RLS/concurrency tests não executados (PostgreSQL local ausente). Validado em S0.2. |
 | 2026-06-11 | Sprint S3 resolved | Lint/typecheck já zerados. Escopo realinhado para Experience Connect. |
+| 2026-06-11 | Sprint S1.1.1 completed | Tenant resolution + role-based guards implementados (`a8de7bb`) |
+| 2026-06-11 | Sprint S1.1.2 completed | OTP login + invite flow implementados (`91e0120`) |
+| 2026-06-12 | Sprint S1.2 completed | AuthProvider canônico + Supabase client unification (`481dafa`) |
 
 ---
 

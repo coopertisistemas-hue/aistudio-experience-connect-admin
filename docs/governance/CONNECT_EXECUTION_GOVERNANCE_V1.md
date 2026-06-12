@@ -19,6 +19,9 @@ Original: `aistudio-portal-connect-admin`. Adaptado para `aistudio-experience-co
 | 0.1.1 | Stripe/firebase removal, TanStack/Zustand/RHF/Zod install | COMPLETED |
 | 0.1.2 | Baseline verification (RLS, concurrency) | PARCIAL |
 | S3 | Lint & Type Hardening | **COMPLETED** (0 errors) |
+| S1.1.1 | TenantProvider + role guards + rotas protegidas | **COMPLETED** |
+| S1.1.2 | OTP login + invite flow | **COMPLETED** |
+| S1.2 | AuthProvider + Supabase client unification | **COMPLETED** |
 
 **Nota:** O escopo original do Sprint S3 listava arquivos do `aistudio-portal-connect-admin`. Para este repositorio, lint (`pnpm lint`) e typecheck (`pnpm typecheck`) ja estao zerados. Sprint S3 considerado COMPLETED.
 
@@ -28,7 +31,7 @@ Original: `aistudio-portal-connect-admin`. Adaptado para `aistudio-experience-co
 
 | Sprint | Foco | Status |
 |--------|------|--------|
-| 1.1.1 | TenantProvider + role guards + rotas protegidas | PENDING |
+| TBD | A definir — fase de sessão/cookies ou próximo bloco Core | PENDING |
 
 ---
 
@@ -84,7 +87,7 @@ PASS only if:
 * Build passes cleanly (`pnpm build`) - COMPLETED
 * Typecheck passes (`pnpm typecheck`) - COMPLETED
 * Lint passes (`pnpm lint`) - COMPLETED
-* Minimax audit completed for Sprint S3 - PENDING
+* Minimax audit completed for Sprint S3 - ✅ COMPLETED
 
 ---
 

@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import type { PaymentStatus, PaymentMethod } from '@/mocks/admin-payments';
 
 interface PaymentsFilterBarProps {
   total: number;
   filtered: number;
   search: string;
   onSearch: (v: string) => void;
-  activeStatus: PaymentStatus | 'all';
-  onStatusChange: (v: PaymentStatus | 'all') => void;
+  activeStatus: string;
+  onStatusChange: (v: string) => void;
   activeFiltersCount: number;
   onMethodChange: (v: string) => void;
   onPeriodChange: (v: string) => void;
+  onCategoryChange: (v: string) => void;
   onClear: () => void;
 }
 
-const statusPills: { label: string; value: PaymentStatus | 'all' }[] = [
+const statusPills: { label: string; value: string }[] = [
   { label: 'Todos',        value: 'all' },
   { label: 'Pago',         value: 'paid' },
   { label: 'Pendente',     value: 'pending' },
@@ -24,7 +24,7 @@ const statusPills: { label: string; value: PaymentStatus | 'all' }[] = [
   { label: 'Cancelado',    value: 'cancelled' },
 ];
 
-const methods: { label: string; value: PaymentMethod | '' }[] = [
+const methods: { label: string; value: string }[] = [
   { label: 'Todos os métodos', value: '' },
   { label: 'PIX', value: 'pix' },
   { label: 'Cartão de Crédito', value: 'credit_card' },
@@ -37,7 +37,7 @@ const methods: { label: string; value: PaymentMethod | '' }[] = [
 export default function PaymentsFilterBar({
   total, filtered, search, onSearch,
   activeStatus, onStatusChange,
-  activeFiltersCount, onMethodChange, onPeriodChange, onClear,
+  activeFiltersCount, onMethodChange, onPeriodChange, onCategoryChange, onClear,
 }: PaymentsFilterBarProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -137,6 +137,7 @@ export default function PaymentsFilterBar({
           <div>
             <label className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-1.5">Categoria</label>
             <select
+              onChange={(e) => onCategoryChange(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-stone-50 border border-stone-200 rounded-lg text-stone-700 focus:outline-none focus:ring-1 focus:ring-teal-400 focus:border-teal-400 cursor-pointer"
             >
               <option value="">Transfer e Experiências</option>

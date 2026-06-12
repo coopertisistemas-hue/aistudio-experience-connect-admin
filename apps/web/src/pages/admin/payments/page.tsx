@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
-import { mockPayments, mockPaymentStats } from '@/mocks/admin-payments';
-import type { MockPayment, PaymentStatus } from '@/mocks/admin-payments';
+import { useAuth } from '@/hooks/useAuth';
+import { usePayments, usePaymentStats } from '@/hooks/usePayments';
+import type { PaymentStatus } from '@connect/core';
+
+type FilterStatus = PaymentStatus | 'overdue' | 'partial' | 'cancelled' | 'all';
+import type { PaymentFilters } from '@/services/payments';
 import PaymentsSummaryStrip from './components/PaymentsSummaryStrip';
 import PaymentsFilterBar from './components/PaymentsFilterBar';
 import PaymentsList from './components/PaymentsList';
 import PaymentDetailDrawer from './components/PaymentDetailDrawer';
 import NovoPageamentoForm from './components/NovoPageamentoForm';
+import { KPISkeleton } from '@/pages/admin/components/ui/LoadingSkeleton';
 
 interface Toast {
   id: number;
@@ -28,22 +33,37 @@ function LoadingSkeleton() {
 }
 
 export default function PaymentsPage() {
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<MockPayment | null>(null);
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const [selected, setSelected] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [toastCounter, setToastCounter] = useState(0);
 
   // Filters
   const [search, setSearch] = useState('');
-  const [activeStatus, setActiveStatus] = useState<PaymentStatus | 'all'>('all');
+  const [activeStatus, setActiveStatus] = useState<FilterStatus>('all');
   const [filterMethod, setFilterMethod] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 850);
-    return () => clearTimeout(t);
-  }, []);
+  const serviceFilters: PaymentFilters = useMemo(() => ({
+    search: search || undefined,
+    status: activeStatus === 'overdue' ? 'overdue' as any : activeStatus as any,
+    method: filterMethod || undefined,
+    period: filterPeriod || undefined,
+  }), [search, activeStatus, filterMethod, filterPeriod]);
+
+  const { data: paymentsData, isLoading, error } = usePayments(tenantId, serviceFilters);
+  const { data: stats } = usePaymentStats(tenantId);
+
+  const payments = paymentsData?.data ?? [];
+  const totalCount = paymentsData?.total ?? 0;
+  const s = stats ?? {
+    receita_confirmada: 0, pendentes: 0, atrasados: 0, ticket_medio: 0,
+    reembolsos: 0, taxa_conversao: 0, overdue_count: 0, pending_count: 0, partial_count: 0,
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -63,25 +83,8 @@ export default function PaymentsPage() {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
   };
 
-  const filtered = useMemo(() => {
-    return mockPayments.filter((p) => {
-      if (activeStatus !== 'all' && p.status !== activeStatus) return false;
-      if (filterMethod && p.method !== filterMethod) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          p.passenger_name.toLowerCase().includes(q) ||
-          p.booking_reference.toLowerCase().includes(q) ||
-          p.reference.toLowerCase().includes(q) ||
-          p.route_name.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [search, activeStatus, filterMethod]);
-
   const activeFiltersCount = [
-    activeStatus !== 'all', !!filterMethod, !!filterPeriod,
+    activeStatus !== 'all', !!filterMethod, !!filterPeriod, !!filterCategory,
   ].filter(Boolean).length;
 
   const handleClear = () => {
@@ -89,12 +92,23 @@ export default function PaymentsPage() {
     setActiveStatus('all');
     setFilterMethod('');
     setFilterPeriod('');
+    setFilterCategory('');
   };
 
-  const s = mockPaymentStats;
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-6 lg:p-8"><LoadingSkeleton /></div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <i className="ri-error-warning-line text-red-500 text-3xl mb-3"></i>
+          <p className="text-red-700 font-medium">Erro ao carregar pagamentos</p>
+          <p className="text-red-500 text-sm mt-1">Tente novamente mais tarde.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -164,25 +178,26 @@ export default function PaymentsPage() {
       </div>
 
       {/* KPIs */}
-      <PaymentsSummaryStrip />
+      <PaymentsSummaryStrip stats={s} />
 
       {/* Filters */}
       <PaymentsFilterBar
-        total={mockPayments.length}
-        filtered={filtered.length}
+        total={totalCount}
+        filtered={payments.length}
         search={search}
         onSearch={setSearch}
         activeStatus={activeStatus}
-        onStatusChange={setActiveStatus}
+        onStatusChange={(v) => setActiveStatus(v as FilterStatus)}
         activeFiltersCount={activeFiltersCount}
         onMethodChange={setFilterMethod}
         onPeriodChange={setFilterPeriod}
+        onCategoryChange={setFilterCategory}
         onClear={handleClear}
       />
 
       {/* Payments list */}
       <PaymentsList
-        payments={filtered}
+        payments={payments}
         selectedId={selected?.id ?? null}
         onSelect={setSelected}
       />
@@ -204,6 +219,7 @@ export default function PaymentsPage() {
             setShowForm(false);
             addToast(confirmed ? 'Pagamento confirmado com sucesso.' : 'Pagamento salvo como pendente.');
           }}
+          tenantId={tenantId}
         />
       )}
 

@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import type { BookingStatus, PaymentStatus } from '@/mocks/admin-bookings';
 
 export interface BookingsFilters {
   search: string;
-  status: BookingStatus | 'all';
-  paymentStatus: PaymentStatus | 'all';
-  bookingType: 'transfer' | 'experience' | 'all';
+  status: string;
+  paymentStatus: string;
+  bookingType: string;
   dateFrom: string;
   dateTo: string;
 }
@@ -17,7 +16,7 @@ interface BookingsFilterBarProps {
   filteredCount: number;
 }
 
-const statusTabs: { label: string; value: BookingStatus | 'all' }[] = [
+const statusTabs: { label: string; value: string }[] = [
   { label: 'Todas', value: 'all' },
   { label: 'Confirmadas', value: 'confirmed' },
   { label: 'Pendentes', value: 'pending' },
@@ -127,7 +126,7 @@ export default function BookingsFilterBar({
               </label>
               <select
                 value={filters.paymentStatus}
-                onChange={(e) => set({ paymentStatus: e.target.value as PaymentStatus | 'all' })}
+                onChange={(e) => set({ paymentStatus: e.target.value })}
                 className="w-full h-9 px-3 text-xs bg-sand-50 border border-sand-200 rounded-lg text-navy-700 focus:outline-none focus:border-teal-300 cursor-pointer"
               >
                 <option value="all">Todos</option>
@@ -145,7 +144,7 @@ export default function BookingsFilterBar({
               </label>
               <select
                 value={filters.bookingType}
-                onChange={(e) => set({ bookingType: e.target.value as 'transfer' | 'experience' | 'all' })}
+                onChange={(e) => set({ bookingType: e.target.value })}
                 className="w-full h-9 px-3 text-xs bg-sand-50 border border-sand-200 rounded-lg text-navy-700 focus:outline-none focus:border-teal-300 cursor-pointer"
               >
                 <option value="all">Todos</option>

@@ -1,14 +1,14 @@
 # EXEC_PLAN_STATUS.md — Experience Connect
 
-**Version:** 1.0  
-**Updated:** 2026-06-11  
+**Version:** 1.1  
+**Updated:** 2026-06-12  
 **Product:** Dom Pietro Experience Connect  
 
 ---
 
 ## Executive Summary
 
-Experience Connect está em **Fase 0 — Foundation**. O backend (schema V2, RLS, Edge Functions) está completo. O frontend está em v0.4.0 (frontend foundation stable). A próxima sprint (S3 — Lint Cleanup & Type Hardening) aguarda aprovação.
+Experience Connect está em **Fase 1 — Core** (auth layer). Backend (schema V2, RLS, Edge Functions) completo. Frontend v0.4.0 estável. As sprints S3 (Lint & Type Hardening), S1.1.1 (tenant/role guards), S1.1.2 (OTP login/invite) e S1.2 (AuthProvider + Supabase) já foram concluídas. Próximo sprint será definido no roadmap.
 
 ---
 
@@ -16,9 +16,12 @@ Experience Connect está em **Fase 0 — Foundation**. O backend (schema V2, RLS
 
 | Sprint | Status | Key Deliverables | Date |
 |--------|--------|------------------|------|
+| S0.2 — Foundation Repairs | ✅ COMPLETE | Migration hardening, governance docs committed | 2026-06-04 |
 | S0.1 — Governance Inventory | ✅ COMPLETE | Inventory report, blocker B-01 resolved | 2026-06-11 |
-| S0.2 — Foundation Repairs | ✅ COMPLETE | Migration hardening, governance docs committed | 2026-06-06 |
-| S3 — Lint Cleanup & Type Hardening | ⏳ PENDING APPROVAL | Awaiting Alexandre/ChatGPT | — |
+| S3 — Lint Cleanup & Type Hardening | ✅ COMPLETE | Lint/typecheck zerados, escopo realinhado | 2026-06-11 |
+| S1.1.1 — Tenant Resolution & Role Guards | ✅ COMPLETE | TenantProvider, role-based guards, rotas protegidas | 2026-06-11 |
+| S1.1.2 — OTP Login & Invite Flow | ✅ COMPLETE | OTP login flow, invite flow | 2026-06-11 |
+| S1.2 — AuthProvider & Supabase Unification | ✅ COMPLETE | AuthProvider canônico, Supabase client unification | 2026-06-04 |
 
 ---
 
@@ -26,8 +29,8 @@ Experience Connect está em **Fase 0 — Foundation**. O backend (schema V2, RLS
 
 | Phase | Progress | Status |
 |-------|----------|--------|
-| Fase 0 — Foundation (Weeks 1-2) | 80% | 🟡 |
-| Fase 1 — Core (Weeks 3-6) | 60% | 🟡 |
+| Fase 0 — Foundation (Weeks 1-2) | 100% | ✅ |
+| Fase 1 — Core (Weeks 3-6) | 75% | 🟡 |
 | Fase 2 — Frontend Foundation (v0.4.0) | 45% | 🟡 |
 | Fase 3 — Scale (Weeks 11-14) | 0% | ⚪ |
 
@@ -38,7 +41,7 @@ Experience Connect está em **Fase 0 — Foundation**. O backend (schema V2, RLS
 | # | Blocker | Owner | Impact | Status |
 |---|---------|-------|--------|--------|
 | B-01 | Documentação de governança não commitada | Kimi | ✅ RESOLVED | Closed |
-| B-02 | Sprint S3 requires human approval | Alexandre/ChatGPT | Cannot start FASE 1 execution | Open |
+| B-02 | Sprint S3 requires human approval | Alexandre/ChatGPT | ✅ RESOLVED — lint/typecheck já zerados, escopo realinhado | Closed |
 
 ---
 

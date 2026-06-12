@@ -1,21 +1,23 @@
-import type { MockPayment, PaymentStatus, PaymentMethod } from '@/mocks/admin-payments';
+import type { PaymentWithDetails } from '@/services/payments';
 
 interface PaymentsListProps {
-  payments: MockPayment[];
+  payments: PaymentWithDetails[];
   selectedId: string | null;
-  onSelect: (p: MockPayment) => void;
+  onSelect: (p: PaymentWithDetails) => void;
 }
 
-const statusConfig: Record<PaymentStatus, { label: string; bg: string; text: string; dot: string }> = {
+const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   paid:      { label: 'Pago',        bg: 'bg-teal-50',          text: 'text-teal-700',  dot: 'bg-teal-500' },
+  completed: { label: 'Pago',        bg: 'bg-teal-50',          text: 'text-teal-700',  dot: 'bg-teal-500' },
   pending:   { label: 'Pendente',    bg: 'bg-amber-50',         text: 'text-amber-700', dot: 'bg-amber-400 animate-pulse' },
   overdue:   { label: 'Atrasado',    bg: 'bg-red-50',           text: 'text-red-600',   dot: 'bg-red-500' },
   partial:   { label: 'Parcial',     bg: 'bg-amber-50',         text: 'text-amber-700', dot: 'bg-amber-400' },
   refunded:  { label: 'Reembolsado', bg: 'bg-stone-100',        text: 'text-stone-500', dot: 'bg-stone-400' },
   cancelled: { label: 'Cancelado',   bg: 'bg-stone-100',        text: 'text-stone-400', dot: 'bg-stone-300' },
+  failed:    { label: 'Falhou',      bg: 'bg-red-50',           text: 'text-red-600',   dot: 'bg-red-500' },
 };
 
-const methodConfig: Record<PaymentMethod, { label: string; icon: string; color: string }> = {
+const methodConfig: Record<string, { label: string; icon: string; color: string }> = {
   pix:           { label: 'PIX',         icon: 'ri-flashlight-line',     color: 'text-teal-600' },
   credit_card:   { label: 'Crédito',     icon: 'ri-bank-card-line',      color: 'text-[#1e3a5f]' },
   debit_card:    { label: 'Débito',      icon: 'ri-bank-card-2-line',    color: 'text-[#1e3a5f]' },

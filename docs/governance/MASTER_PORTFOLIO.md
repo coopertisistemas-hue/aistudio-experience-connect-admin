@@ -1,8 +1,8 @@
 # MASTER_PORTFOLIO.md
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** ACTIVE  
-**Updated:** 2026-06-06  
+**Updated:** 2026-06-12  
 
 ---
 
@@ -14,7 +14,7 @@
 | 2 | Connect Engineering | eng | `01-engineering/connect-engineering` | 0 | — | baseline |
 | 3 | Agency AI System | ai-agency | `02-ai-workspace/agency-ai-system` | 0 | — | baseline |
 | 4 | AI Workspace Ecosystem | ai-eco | `02-ai-workspace/workspace-ai-ecosystem` | 0 | — | baseline |
-| 5 | Experience Connect Admin | ec-admin | `03-products/experience-connect/aistudio-experience-connect-admin` | 1 | pending | ready |
+| 5 | Experience Connect Admin | ec-admin | `03-products/experience-connect/aistudio-experience-connect-admin` | 1 | 1.1.2 | active |
 | 6 | Host Connect Admin | hc-admin | `03-products/host-connect/aistudio-host-connect-admin` | 1 | pending | ready |
 | 7 | MD Connect Admin | md-admin | `03-products/md-connect/aistudio-md-connect-admin` | 1 | pending | ready |
 | 8 | MD Connect App | md-app | `03-products/md-connect/aistudio-md-connect-app` | 1 | pending | ready |
@@ -44,7 +44,10 @@
 | Mission | Owner | Target Repos | Status |
 |---------|-------|-------------|--------|
 | Foundation Repairs | Kimi / DeepSeek | pc-admin | S0.2 COMPLETED |
-| Lint Cleanup & Type Hardening | TBD | pc-admin | S3 PENDING |
+| Lint Cleanup & Type Hardening | Kimi | ec-admin | S3 COMPLETED |
+| Tenant Resolution & Role Guards | Kimi | ec-admin | S1.1.1 COMPLETED |
+| OTP Login & Invite Flow | Kimi | ec-admin | S1.1.2 COMPLETED |
+| AuthProvider & Supabase Unification | Kimi | ec-admin | S1.2 COMPLETED |
 | Tenant Context Hardening | TBD | pc-admin | SPRINT A1 ACTIVE |
 | Host Production Readiness | TBD | hc-admin | committed |
 | Reserve Stripe Activation | TBD | rc-admin | committed |

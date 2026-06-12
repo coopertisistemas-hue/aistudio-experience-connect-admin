@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { MockPayment, PaymentStatus, PaymentMethod } from '@/mocks/admin-payments';
-import { methodLabel } from '@/mocks/admin-payments';
+import type { PaymentWithDetails } from '@/services/payments';
 
 interface PaymentDetailDrawerProps {
-  payment: MockPayment;
+  payment: PaymentWithDetails;
   onClose: () => void;
   onToast: (msg: string) => void;
 }
@@ -19,16 +18,18 @@ const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: 'financeiro', label: 'Financeiro', icon: 'ri-money-dollar-circle-line' },
 ];
 
-const statusConfig: Record<PaymentStatus, { label: string; bg: string; text: string; dot: string }> = {
+const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   paid:      { label: 'Pago',        bg: 'bg-teal-50',   text: 'text-teal-700',  dot: 'bg-teal-500' },
+  completed: { label: 'Pago',        bg: 'bg-teal-50',   text: 'text-teal-700',  dot: 'bg-teal-500' },
   pending:   { label: 'Pendente',    bg: 'bg-amber-50',  text: 'text-amber-700', dot: 'bg-amber-400 animate-pulse' },
   overdue:   { label: 'Atrasado',    bg: 'bg-red-50',    text: 'text-red-600',   dot: 'bg-red-500' },
   partial:   { label: 'Parcial',     bg: 'bg-amber-50',  text: 'text-amber-700', dot: 'bg-amber-400' },
   refunded:  { label: 'Reembolsado', bg: 'bg-stone-100', text: 'text-stone-500', dot: 'bg-stone-400' },
   cancelled: { label: 'Cancelado',   bg: 'bg-stone-100', text: 'text-stone-400', dot: 'bg-stone-300' },
+  failed:    { label: 'Falhou',      bg: 'bg-red-50',    text: 'text-red-600',   dot: 'bg-red-500' },
 };
 
-const methodIconMap: Record<PaymentMethod, { icon: string; label: string; color: string; bg: string }> = {
+const methodIconMap: Record<string, { icon: string; label: string; color: string; bg: string }> = {
   pix:           { icon: 'ri-flashlight-line',          label: 'PIX',                 color: 'text-teal-600',   bg: 'bg-teal-50' },
   credit_card:   { icon: 'ri-bank-card-line',           label: 'Cartão de Crédito',   color: 'text-[#1e3a5f]',  bg: 'bg-navy-950/[0.05]' },
   debit_card:    { icon: 'ri-bank-card-2-line',         label: 'Cartão de Débito',    color: 'text-[#1e3a5f]',  bg: 'bg-navy-950/[0.05]' },
@@ -37,7 +38,7 @@ const methodIconMap: Record<PaymentMethod, { icon: string; label: string; color:
   payment_link:  { icon: 'ri-links-line',              label: 'Link de Pagamento',   color: 'text-amber-600',  bg: 'bg-amber-50' },
 };
 
-const allMethods: PaymentMethod[] = ['pix', 'credit_card', 'debit_card', 'bank_transfer', 'cash', 'payment_link'];
+const allMethods = ['pix', 'credit_card', 'debit_card', 'bank_transfer', 'cash', 'payment_link'];
 
 function InfoRow({ label, value, accent }: { label: string; value: string | null | undefined; accent?: string }) {
   return (
@@ -310,7 +311,7 @@ export default function PaymentDetailDrawer({ payment: p, onClose, onToast }: Pa
                     <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}></span>
                     {sc.label}
                   </span>
-                  {p.method && <span className="text-stone-400 text-xs">{methodLabel[p.method]}</span>}
+                  {p.method && <span className="text-stone-400 text-xs">{methodIconMap[p.method]?.label || p.method}</span>}
                 </div>
               </div>
 

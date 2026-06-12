@@ -1,25 +1,9 @@
 import { Link } from 'react-router-dom';
-import { mockPayments } from '@/mocks/admin-payments';
-import { mockReceivables } from '@/mocks/admin-receivables';
-
-// Compute live stats from mocks
-const activeReceivables = mockReceivables.filter((r) => r.status !== 'cancelled');
-const totalReceivable = activeReceivables.reduce((a, r) => a + r.amount, 0);
-const collected = activeReceivables.reduce((a, r) => a + r.amount_received, 0);
-const overdueAmount = mockReceivables.filter((r) => r.status === 'overdue').reduce((a, r) => a + r.amount, 0);
-const reconciliationRate = totalReceivable > 0 ? Math.round((collected / totalReceivable) * 100) : 0;
-
-const next30days = mockReceivables
-  .filter((r) => {
-    const due = new Date(r.due_date);
-    const now = new Date('2026-05-17');
-    const diff = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    return diff >= 0 && diff <= 30 && (r.status === 'open' || r.status === 'partial');
-  })
-  .reduce((a, r) => a + (r.amount - r.amount_received), 0);
-
-const pendingPayments = mockPayments.filter((p) => p.status === 'pending').length;
-const overduePayments = mockPayments.filter((p) => p.status === 'overdue').length;
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { usePaymentStats } from '@/hooks/usePayments';
+import { useQuery } from '@tanstack/react-query';
+import { withTenant } from '@connect/core';
 
 const CASHFLOW = [
   { label: 'Mai 17', collected: 2890, pending: 520 },
@@ -36,6 +20,30 @@ function fmt(n: number) {
 }
 
 export default function DashboardFinancialOverview() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const { data: payments } = useQuery({
+    queryKey: ['dashboard-payments', tenantId],
+    queryFn: async () => {
+      const query = withTenant(supabase.from('payments').select('*'), tenantId);
+      return await query;
+    },
+  });
+
+  const { data: stats } = usePaymentStats(tenantId);
+
+  const allPayments = payments?.data ?? [];
+  const pendingPayments = allPayments.filter((p: any) => p.status === 'pending').length;
+  const overduePayments = allPayments.filter((p: any) => p.status === 'overdue').length;
+  const totalReceivable = (stats?.pendentes ?? 0) + (stats?.atrasados ?? 0);
+  const collected = stats?.receita_confirmada ?? 0;
+  const overdueAmount = stats?.atrasados ?? 0;
+  const reconciliationRate = totalReceivable > 0
+    ? Math.round((collected / Math.max(totalReceivable + collected, 1)) * 100)
+    : 0;
+  const next30days = stats?.pendentes ?? 0;
+
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -69,7 +77,6 @@ export default function DashboardFinancialOverview() {
           </div>
 
           <div className="space-y-2.5">
-            {/* Progress */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] text-stone-400">Coletado</span>
@@ -78,7 +85,7 @@ export default function DashboardFinancialOverview() {
               <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((collected / Math.max(totalReceivable, 1)) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((collected / Math.max(totalReceivable + collected, 1)) * 100, 100)}%` }}
                 />
               </div>
             </div>
@@ -112,7 +119,6 @@ export default function DashboardFinancialOverview() {
             </div>
           </div>
 
-          {/* Ring chart */}
           <div className="flex items-center gap-4 mb-4">
             <div className="relative w-16 h-16 flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
@@ -133,7 +139,7 @@ export default function DashboardFinancialOverview() {
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-stone-400">Recebidos</span>
                 <span className="text-[11px] font-medium text-teal-600">
-                  {mockReceivables.filter((r) => r.status === 'received').length}
+                  {allPayments.filter((p: any) => p.status === 'completed' || p.status === 'paid').length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -169,7 +175,6 @@ export default function DashboardFinancialOverview() {
             </div>
           </div>
 
-          {/* Mini bar chart */}
           <div className="flex items-end gap-1.5 h-16 mb-3">
             {CASHFLOW.map((day) => (
               <div key={day.label} className="flex-1 flex flex-col items-center gap-0.5">
@@ -194,7 +199,6 @@ export default function DashboardFinancialOverview() {
             ))}
           </div>
 
-          {/* X-axis labels */}
           <div className="flex gap-1.5 mb-3">
             {CASHFLOW.map((day) => (
               <div key={day.label} className="flex-1 text-center">
@@ -203,7 +207,6 @@ export default function DashboardFinancialOverview() {
             ))}
           </div>
 
-          {/* Legend */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-teal-400/80"></div>

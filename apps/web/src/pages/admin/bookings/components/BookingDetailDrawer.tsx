@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { MockBooking } from '@/mocks/admin-bookings';
+import type { BookingWithDetails } from '@/services/bookings';
 import StatusBadge from '@/pages/admin/components/ui/StatusBadge';
 
 interface BookingDetailDrawerProps {
-  booking: MockBooking;
+  booking: BookingWithDetails;
   onClose: () => void;
 }
 

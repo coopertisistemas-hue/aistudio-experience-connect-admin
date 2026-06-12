@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
-import { mockBookings, type MockBooking, type BookingStatus, type PaymentStatus } from '@/mocks/admin-bookings';
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useBookings, useCreateBookingHold } from '@/hooks/useBookings';
+import type { BookingFilters as ServiceBookingFilters } from '@/services/bookings';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
 import BookingsFilterBar, { type BookingsFilters } from './components/BookingsFilterBar';
 import BookingsTable from './components/BookingsTable';
 import BookingDetailDrawer from './components/BookingDetailDrawer';
 import NovaReservaForm from './components/NovaReservaForm';
+import { TableSkeleton, KPISkeleton } from '@/pages/admin/components/ui/LoadingSkeleton';
+import EmptyState from '@/pages/admin/components/ui/EmptyState';
 
 const defaultFilters: BookingsFilters = {
   search: '',
@@ -22,11 +26,28 @@ interface Toast {
 }
 
 export default function BookingsPage() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
   const [filters, setFilters] = useState<BookingsFilters>(defaultFilters);
-  const [selectedBooking, setSelectedBooking] = useState<MockBooking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [showNewForm, setShowNewForm] = useState(false);
-  const [loading] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const serviceFilters: ServiceBookingFilters = useMemo(() => ({
+    search: filters.search || undefined,
+    status: filters.status as any,
+    paymentStatus: filters.paymentStatus === 'all' ? undefined : filters.paymentStatus,
+    bookingType: filters.bookingType as any,
+    dateFrom: filters.dateFrom || undefined,
+    dateTo: filters.dateTo || undefined,
+  }), [filters]);
+
+  const { data: bookingsData, isLoading, error } = useBookings(tenantId, serviceFilters);
+  const createHold = useCreateBookingHold();
+
+  const bookings = bookingsData?.data ?? [];
+  const totalCount = bookingsData?.total ?? 0;
 
   const addToast = (message: string, type: 'success' | 'error' = 'success') => {
     const id = crypto.randomUUID();
@@ -46,39 +67,17 @@ export default function BookingsPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedBooking, showNewForm]);
 
-  const filtered = mockBookings.filter((b) => {
-    // Status filter
-    if (filters.status !== 'all' && b.status !== (filters.status as BookingStatus)) return false;
-    // Payment filter
-    if (filters.paymentStatus !== 'all' && b.payment_status !== (filters.paymentStatus as PaymentStatus)) return false;
-    // Type filter
-    if (filters.bookingType !== 'all' && b.booking_type !== filters.bookingType) return false;
-    // Date from
-    if (filters.dateFrom) {
-      const from = new Date(filters.dateFrom);
-      if (new Date(b.scheduled_at) < from) return false;
-    }
-    // Date to
-    if (filters.dateTo) {
-      const to = new Date(filters.dateTo);
-      to.setHours(23, 59, 59);
-      if (new Date(b.scheduled_at) > to) return false;
-    }
-    // Search
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      return (
-        b.reference.toLowerCase().includes(q) ||
-        b.passenger_name.toLowerCase().includes(q) ||
-        b.passenger_email.toLowerCase().includes(q) ||
-        b.pickup_location.toLowerCase().includes(q) ||
-        b.dropoff_location.toLowerCase().includes(q) ||
-        (b.driver_name?.toLowerCase().includes(q) ?? false) ||
-        (b.route_name?.toLowerCase().includes(q) ?? false)
-      );
-    }
-    return true;
-  });
+  if (error) {
+    return (
+      <div className="p-6 max-w-[1600px]">
+        <EmptyState
+          icon="ri-error-warning-line"
+          title="Erro ao carregar reservas"
+          description="Não foi possível carregar os dados. Tente novamente."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-[1600px]">
@@ -86,10 +85,9 @@ export default function BookingsPage() {
         icon="ri-calendar-check-line"
         title="Reservas"
         subtitle="Gerencie e acompanhe todas as reservas da operação."
-        badge={`${mockBookings.length} reservas`}
+        badge={`${totalCount} reservas`}
         action={
           <div className="flex items-center gap-2.5">
-            {/* Export placeholder */}
             <button
               type="button"
               className="h-10 flex items-center gap-2 px-4 bg-white border border-sand-200 hover:border-sand-300 text-navy-600 text-sm font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap"
@@ -98,7 +96,6 @@ export default function BookingsPage() {
               <span className="hidden sm:inline">Exportar</span>
             </button>
 
-            {/* Nova Reserva */}
             <button
               type="button"
               onClick={() => setShowNewForm(true)}
@@ -111,49 +108,59 @@ export default function BookingsPage() {
         }
       />
 
-      {/* KPI summary strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        {[
-          { label: 'Total', value: mockBookings.length, icon: 'ri-calendar-line', color: 'text-navy-700' },
-          { label: 'Confirmadas', value: mockBookings.filter((b) => b.status === 'confirmed').length, icon: 'ri-checkbox-circle-line', color: 'text-teal-600' },
-          { label: 'Pendentes', value: mockBookings.filter((b) => b.status === 'pending').length, icon: 'ri-time-line', color: 'text-amber-600' },
-          { label: 'Em Andamento', value: mockBookings.filter((b) => b.status === 'in_progress').length, icon: 'ri-car-line', color: 'text-navy-500' },
-          { label: 'Finalizadas', value: mockBookings.filter((b) => b.status === 'completed').length, icon: 'ri-flag-line', color: 'text-navy-400' },
-          { label: 'Canceladas', value: mockBookings.filter((b) => b.status === 'cancelled').length, icon: 'ri-close-circle-line', color: 'text-red-400' },
-        ].map((kpi) => (
-          <div
-            key={kpi.label}
-            className="bg-white border border-sand-200 rounded-xl px-4 py-3 flex items-center gap-3"
-          >
-            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-sand-50 flex-shrink-0">
-              <i className={`${kpi.icon} ${kpi.color} text-base`}></i>
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-bold text-navy-900 leading-none">{kpi.value}</p>
-              <p className="text-[10px] text-navy-400 mt-0.5 truncate">{kpi.label}</p>
-            </div>
+      {isLoading ? (
+        <>
+          <KPISkeleton />
+          <div className="mb-5"><div className="h-10 bg-sand-100 rounded-xl animate-pulse" /></div>
+          <TableSkeleton rows={6} />
+        </>
+      ) : (
+        <>
+          {/* KPI summary strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+            {[
+              { label: 'Total', value: bookings.length, icon: 'ri-calendar-line', color: 'text-navy-700' },
+              { label: 'Confirmadas', value: bookings.filter((b: any) => b.status === 'confirmed').length, icon: 'ri-checkbox-circle-line', color: 'text-teal-600' },
+              { label: 'Pendentes', value: bookings.filter((b: any) => b.status === 'pending').length, icon: 'ri-time-line', color: 'text-amber-600' },
+              { label: 'Em Andamento', value: bookings.filter((b: any) => b.status === 'in_progress').length, icon: 'ri-car-line', color: 'text-navy-500' },
+              { label: 'Finalizadas', value: bookings.filter((b: any) => b.status === 'completed').length, icon: 'ri-flag-line', color: 'text-navy-400' },
+              { label: 'Canceladas', value: bookings.filter((b: any) => b.status === 'cancelled').length, icon: 'ri-close-circle-line', color: 'text-red-400' },
+            ].map((kpi) => (
+              <div
+                key={kpi.label}
+                className="bg-white border border-sand-200 rounded-xl px-4 py-3 flex items-center gap-3"
+              >
+                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-sand-50 flex-shrink-0">
+                  <i className={`${kpi.icon} ${kpi.color} text-base`}></i>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-navy-900 leading-none">{kpi.value}</p>
+                  <p className="text-[10px] text-navy-400 mt-0.5 truncate">{kpi.label}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Filters */}
-      <BookingsFilterBar
-        filters={filters}
-        onChange={setFilters}
-        totalCount={mockBookings.length}
-        filteredCount={filtered.length}
-      />
+          {/* Filters */}
+          <BookingsFilterBar
+            filters={filters}
+            onChange={setFilters}
+            totalCount={totalCount}
+            filteredCount={bookings.length}
+          />
 
-      {/* Table */}
-      <BookingsTable
-        bookings={filtered}
-        loading={loading}
-        onSelect={(b) => {
-          setShowNewForm(false);
-          setSelectedBooking(b);
-        }}
-        selectedId={selectedBooking?.id}
-      />
+          {/* Table */}
+          <BookingsTable
+            bookings={bookings}
+            loading={false}
+            onSelect={(b) => {
+              setShowNewForm(false);
+              setSelectedBooking(b);
+            }}
+            selectedId={selectedBooking?.id}
+          />
+        </>
+      )}
 
       {/* Detail drawer */}
       {selectedBooking && (
@@ -171,6 +178,7 @@ export default function BookingsPage() {
             setShowNewForm(false);
             addToast('Reserva criada com sucesso!');
           }}
+          tenantId={tenantId}
         />
       )}
 

@@ -1,4 +1,14 @@
-import { mockPaymentStats } from '@/mocks/admin-payments';
+interface PaymentStats {
+  receita_confirmada: number;
+  pendentes: number;
+  atrasados: number;
+  ticket_medio: number;
+  reembolsos: number;
+  taxa_conversao: number;
+  overdue_count: number;
+  pending_count: number;
+  partial_count: number;
+}
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `R$ ${(n / 1_000_000).toFixed(1)}M`;
@@ -6,8 +16,11 @@ function fmt(n: number) {
   return `R$ ${n.toLocaleString('pt-BR')}`;
 }
 
-export default function PaymentsSummaryStrip() {
-  const s = mockPaymentStats;
+interface PaymentsSummaryStripProps {
+  stats: PaymentStats;
+}
+
+export default function PaymentsSummaryStrip({ stats: s }: PaymentsSummaryStripProps) {
 
   const cards = [
     {

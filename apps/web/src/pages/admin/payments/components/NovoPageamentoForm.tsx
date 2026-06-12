@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import type { PaymentMethod } from '@/mocks/admin-payments';
+import { useRecordManualPayment } from '@/hooks/usePayments';
 
 interface NovoPageamentoFormProps {
   onClose: () => void;
   onSave: (confirmed: boolean) => void;
+  tenantId: string;
 }
 
 type Section = 'reserva' | 'passageiro' | 'pagamento' | 'metodo' | 'obs';
@@ -16,7 +17,7 @@ const sections: { id: Section; label: string; icon: string }[] = [
   { id: 'obs',        label: 'Obs.',       icon: 'ri-file-text-line' },
 ];
 
-const methodOptions: { value: PaymentMethod; label: string; icon: string; desc: string }[] = [
+const methodOptions: { value: string; label: string; icon: string; desc: string }[] = [
   { value: 'pix',          label: 'PIX',                icon: 'ri-flashlight-line',          desc: 'Transferência instantânea via chave PIX' },
   { value: 'credit_card',  label: 'Cartão de Crédito',  icon: 'ri-bank-card-line',            desc: 'Crédito à vista ou parcelado' },
   { value: 'debit_card',   label: 'Cartão de Débito',   icon: 'ri-bank-card-2-line',          desc: 'Débito direto na conta' },
@@ -27,12 +28,15 @@ const methodOptions: { value: PaymentMethod; label: string; icon: string; desc: 
 
 const bookingRefs = ['BK-0051', 'BK-0050', 'BK-0049', 'BK-0048', 'BK-0047', 'BK-0046', 'BK-0045'];
 
-export default function NovoPageamentoForm({ onClose, onSave }: NovoPageamentoFormProps) {
+export default function NovoPageamentoForm({ onClose, onSave, tenantId }: NovoPageamentoFormProps) {
   const [activeSection, setActiveSection] = useState<Section>('reserva');
-  const [method, setMethod] = useState<PaymentMethod | ''>('');
+  const [method, setMethod] = useState('');
   const [notesLen, setNotesLen] = useState(0);
   const [amount, setAmount] = useState('');
+  const [bookingId, setBookingId] = useState('');
   const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const recordManual = useRecordManualPayment();
 
   const inputCls = 'w-full px-3 py-2 text-sm bg-stone-50 border border-stone-200 rounded-lg text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-teal-400 focus:border-teal-400';
   const labelCls = 'block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1.5';
@@ -78,7 +82,7 @@ export default function NovoPageamentoForm({ onClose, onSave }: NovoPageamentoFo
             <>
               <div>
                 <label className={labelCls}>Referência da Reserva</label>
-                <select className={inputCls}>
+                <select className={inputCls} value={bookingId} onChange={(e) => setBookingId(e.target.value)}>
                   <option value="">Selecione uma reserva...</option>
                   {bookingRefs.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
@@ -228,18 +232,48 @@ export default function NovoPageamentoForm({ onClose, onSave }: NovoPageamentoFo
             </button>
             <button
               type="button"
-              onClick={() => onSave(false)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 text-sm font-medium hover:bg-stone-50 transition-colors cursor-pointer whitespace-nowrap"
+              onClick={() => {
+                if (!amount || !bookingId) return;
+                setSaving(true);
+                recordManual.mutateAsync({
+                  tenant_id: tenantId,
+                  booking_id: bookingId,
+                  amount: Number(amount),
+                  reason: notes || 'Pagamento manual',
+                }).then(() => {
+                  setSaving(false);
+                  onSave(false);
+                }).catch(() => {
+                  setSaving(false);
+                });
+              }}
+              disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 text-sm font-medium hover:bg-stone-50 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
-              <i className="ri-save-line"></i>
+              {saving ? <i className="ri-loader-4-line animate-spin"></i> : <i className="ri-save-line"></i>}
               Salvar
             </button>
             <button
               type="button"
-              onClick={() => onSave(true)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors cursor-pointer whitespace-nowrap"
+              onClick={() => {
+                if (!amount || !bookingId) return;
+                setSaving(true);
+                recordManual.mutateAsync({
+                  tenant_id: tenantId,
+                  booking_id: bookingId,
+                  amount: Number(amount),
+                  reason: notes || 'Pagamento manual confirmado',
+                }).then(() => {
+                  setSaving(false);
+                  onSave(true);
+                }).catch(() => {
+                  setSaving(false);
+                });
+              }}
+              disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
-              <i className="ri-checkbox-circle-line"></i>
+              {saving ? <i className="ri-loader-4-line animate-spin"></i> : <i className="ri-checkbox-circle-line"></i>}
               Confirmar
             </button>
           </div>

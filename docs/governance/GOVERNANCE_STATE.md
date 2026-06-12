@@ -1,8 +1,8 @@
 # GOVERNANCE_STATE.md
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** ACTIVE  
-**Updated:** 2026-06-11  
+**Updated:** 2026-06-12  
 
 ---
 
