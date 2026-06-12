@@ -5,6 +5,60 @@
 
 ---
 
+## [v0.5.3-rpc-consolidated] - 2026-06-12
+
+### Added
+- **DB RPC Consolidation (R3):** `release_slot_capacity` helper extracted as reusable function.
+- **Function Refactoring:** 3 RPC functions refactored to use the shared helper, reducing duplication.
+
+### Migration
+- `20260612100200_extract_release_slot_capacity.sql`
+- `20260612100300_refactor_functions_to_use_helper.sql`
+
+---
+
+## [v0.5.2-security-hardened] - 2026-06-12
+
+### Added
+- **Operational Risks Resolution (OR1):** CI/CD pipeline hardened, Vercel production config secured.
+- **Private Schema:** Consolidated and finalized.
+
+### Removed
+- **V1 RLS Anti-pattern Policies:** Dropped — fully superseded by V2 policies (non-breaking).
+
+### Migration
+- `20260612100000_fix_private_schema.sql`
+- `20260612100100_drop_v1_rls_policies.sql`
+
+---
+
+## [v0.5.1-payments-realtime] - 2026-06-12
+
+### Added
+- **Payments Live Integration:** Dashboard KPIs powered by live Supabase queries.
+- **Realtime Subscriptions:** Enabled for payment status updates.
+- **Payment Polling:** Mechanism implemented for fallback sync.
+- **Edge Functions Aligned:** Contracts synchronized with frontend.
+- **Checkout Flow:** Fully functional end-to-end.
+
+### Migration
+None.
+
+---
+
+## [v0.5.0-bookings-live-integration] - 2026-06-12
+
+### Added
+- **Bookings Live Integration (Sprint 1.3):** Services layer (`src/services/`) and React hooks (`src/hooks/`) created.
+- **Payment Preferences:** Migration `payment_preferences` table implemented.
+- **Edge Function:** `create-payment-preference` created.
+- **Live Data:** Booking and payment pages consuming live data from Supabase.
+
+### Migration
+- `20260612010000_create_payment_preferences.sql`
+
+---
+
 ## [v0.3.1-frontend-ready] - 2026-05-16
 
 ### Fixed
