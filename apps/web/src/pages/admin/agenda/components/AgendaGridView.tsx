@@ -1,4 +1,4 @@
-import type { AgendaItem } from '@/mocks/admin-agenda';
+import type { AgendaItem } from '@/services/agenda';
 
 interface AgendaGridViewProps {
   items: AgendaItem[];

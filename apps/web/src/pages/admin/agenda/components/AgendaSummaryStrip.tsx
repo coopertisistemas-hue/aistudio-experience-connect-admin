@@ -1,4 +1,4 @@
-import type { AgendaItem, AgendaConflict } from '@/mocks/admin-agenda';
+import type { AgendaItem, AgendaConflict } from '@/services/agenda';
 
 interface AgendaSummaryStripProps {
   items: AgendaItem[];

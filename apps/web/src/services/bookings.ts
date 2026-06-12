@@ -65,7 +65,9 @@ export interface BookingWithDetails {
   dropoff_location: string;
   route_name: string | null;
   scheduled_at: string;
+  scheduled_end_at: string;
   created_at: string;
+  driver_id: string | null;
   driver_name: string | null;
   driver_phone: string | null;
   vehicle_name: string | null;
@@ -75,6 +77,7 @@ export interface BookingWithDetails {
   payment_status: string;
   payment_method: string | null;
   notes: string | null;
+  vehicle_capacity: number | null;
   timeline: TimelineEvent[];
 }
 
@@ -106,12 +109,15 @@ function mapBookingToDetails(
     dropoff_location: booking.dropoff_location || '—',
     route_name: route?.name || null,
     scheduled_at: booking.scheduled_at,
+    scheduled_end_at: booking.scheduled_end_at,
     created_at: booking.created_at,
+    driver_id: booking.driver_id,
     driver_name: driver?.name || null,
     driver_phone: driver?.phone || null,
     vehicle_name: vehicle?.name || null,
     vehicle_plate: vehicle?.plate || null,
     vehicle_type: vehicle?.type || null,
+    vehicle_capacity: vehicle?.capacity ?? null,
     total_amount: booking.total_amount,
     payment_status: payment?.status || 'pending',
     payment_method: payment?.method || null,
@@ -240,11 +246,11 @@ export const bookingService = {
     return true;
   },
 
-  async cancel(id: string, reason?: string): Promise<boolean> {
+  async cancel(id: string, tenantId: string, reason?: string): Promise<boolean> {
     const { data, error } = await invokeEdgeFunction<{ success: boolean }>(
       supabase as any,
       'cancel-booking',
-      { booking_id: id, reason: reason || 'Cancelado pelo admin' } as any,
+      { booking_id: id, tenant_id: tenantId, reason: reason || 'Cancelado pelo admin' } as any,
     );
 
     if (error) {
@@ -255,12 +261,13 @@ export const bookingService = {
     return true;
   },
 
-  async reschedule(bookingId: string, newSlotId: string, newScheduledAt: string, newScheduledEndAt: string, reason?: string): Promise<boolean> {
+  async reschedule(bookingId: string, tenantId: string, newSlotId: string, newScheduledAt: string, newScheduledEndAt: string, reason?: string): Promise<boolean> {
     const { data, error } = await invokeEdgeFunction<{ success: boolean }>(
       supabase as any,
       'reschedule-booking',
       {
         booking_id: bookingId,
+        tenant_id: tenantId,
         new_vehicle_slot_id: newSlotId,
         new_scheduled_at: newScheduledAt,
         new_scheduled_end_at: newScheduledEndAt,

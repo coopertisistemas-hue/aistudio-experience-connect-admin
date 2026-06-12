@@ -24,6 +24,7 @@ export function useCreateBookingHold() {
     mutationFn: (input: CreateHoldInput) => bookingService.createHold(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
     },
   });
 }
@@ -32,9 +33,11 @@ export function useCancelBooking() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) => bookingService.cancel(id, reason),
+    mutationFn: ({ id, tenantId, reason }: { id: string; tenantId: string; reason?: string }) =>
+      bookingService.cancel(id, tenantId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
     },
   });
 }
@@ -45,19 +48,22 @@ export function useRescheduleBooking() {
   return useMutation({
     mutationFn: ({
       bookingId,
+      tenantId,
       newSlotId,
       newScheduledAt,
       newScheduledEndAt,
       reason,
     }: {
       bookingId: string;
+      tenantId: string;
       newSlotId: string;
       newScheduledAt: string;
       newScheduledEndAt: string;
       reason?: string;
-    }) => bookingService.reschedule(bookingId, newSlotId, newScheduledAt, newScheduledEndAt, reason),
+    }) => bookingService.reschedule(bookingId, tenantId, newSlotId, newScheduledAt, newScheduledEndAt, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['agenda'] });
     },
   });
 }

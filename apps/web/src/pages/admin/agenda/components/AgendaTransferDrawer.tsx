@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import type { AgendaItem } from '@/mocks/admin-agenda';
+import type { AgendaItem } from '@/services/agenda';
 
 interface AgendaTransferDrawerProps {
   item: AgendaItem;
   onClose: () => void;
+  onCancel?: (id: string) => void;
+  onAssignDriver?: (id: string) => void;
+  onReschedule?: (id: string) => void;
+  onViewBooking?: (id: string) => void;
 }
 
 type DrawerTab = 'reserva' | 'passageiros' | 'transfer' | 'operacao' | 'timeline';
@@ -33,7 +37,7 @@ const timelineIconColor: Record<string, string> = {
   stone: 'text-stone-500 bg-stone-100',
 };
 
-export default function AgendaTransferDrawer({ item, onClose }: AgendaTransferDrawerProps) {
+export default function AgendaTransferDrawer({ item, onClose, onCancel, onAssignDriver, onReschedule, onViewBooking }: AgendaTransferDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTab>('reserva');
   const s = statusConfig[item.status] ?? statusConfig.scheduled;
   const dt = new Date(item.scheduled_at);
@@ -302,22 +306,35 @@ export default function AgendaTransferDrawer({ item, onClose }: AgendaTransferDr
         <div className="px-5 py-4 border-t border-sand-200 flex gap-2.5 flex-shrink-0 bg-sand-50/60">
           <button
             type="button"
+            onClick={() => onViewBooking?.(item.id)}
             className="flex-1 py-2.5 bg-white hover:bg-sand-100 text-navy-700 text-sm font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap border border-sand-200"
           >
             <i className="ri-external-link-line mr-1.5"></i>
             Ver Reserva
           </button>
-          {!item.driver && (
+          {!item.driver && item.status !== 'cancelled' && (
             <button
               type="button"
+              onClick={() => onAssignDriver?.(item.id)}
               className="flex-1 py-2.5 bg-navy-950 hover:bg-navy-900 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             >
               Alocar Motorista
             </button>
           )}
-          {item.driver && item.status !== 'completed' && (
+          {item.status !== 'completed' && item.status !== 'cancelled' && (
             <button
               type="button"
+              onClick={() => onCancel?.(item.id)}
+              className="flex-1 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap border border-red-200"
+            >
+              <i className="ri-close-circle-line mr-1.5"></i>
+              Cancelar
+            </button>
+          )}
+          {item.driver && item.status !== 'completed' && item.status !== 'cancelled' && (
+            <button
+              type="button"
+              onClick={() => onReschedule?.(item.id)}
               className="flex-1 py-2.5 bg-navy-950 hover:bg-navy-900 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             >
               Alterar Horário

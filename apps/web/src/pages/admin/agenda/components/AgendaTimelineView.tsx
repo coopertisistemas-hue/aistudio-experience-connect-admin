@@ -1,4 +1,4 @@
-import type { AgendaItem, AgendaDriver } from '@/mocks/admin-agenda';
+import type { AgendaItem, AgendaDriverDisplay } from '@/services/agenda';
 
 interface AgendaTimelineViewProps {
   items: AgendaItem[];
@@ -49,7 +49,7 @@ function getCurrentTimeLeft(): number | null {
 }
 
 interface DriverLaneProps {
-  driver: AgendaDriver;
+  driver: AgendaDriverDisplay;
   items: AgendaItem[];
   onSelect: (item: AgendaItem) => void;
   selectedId?: string;
@@ -189,7 +189,7 @@ export default function AgendaTimelineView({ items, onSelect, selectedId }: Agen
   const nowLeft = getCurrentTimeLeft();
 
   // Group by driver
-  const driverMap = new Map<string, { driver: AgendaDriver; items: AgendaItem[] }>();
+  const driverMap = new Map<string, { driver: AgendaDriverDisplay; items: AgendaItem[] }>();
   const unassigned: AgendaItem[] = [];
 
   items.forEach((item) => {

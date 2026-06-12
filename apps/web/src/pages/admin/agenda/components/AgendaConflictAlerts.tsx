@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AgendaConflict } from '@/mocks/admin-agenda';
+import type { AgendaConflict } from '@/services/agenda';
 
 interface AgendaConflictAlertsProps {
   conflicts: AgendaConflict[];

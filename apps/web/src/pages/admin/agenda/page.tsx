@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
-import { mockAgendaItems, mockConflicts, type AgendaItem, type AgendaStatus } from '@/mocks/admin-agenda';
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAgenda, useAgendaDrivers } from '@/hooks/useAgenda';
+import { useCancelBooking } from '@/hooks/useBookings';
+import type { AgendaItem, AgendaStatus } from '@/services/agenda';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
 import AgendaSummaryStrip from './components/AgendaSummaryStrip';
 import AgendaFilterBar, { type AgendaFilters } from './components/AgendaFilterBar';
@@ -43,13 +46,29 @@ function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+function toDateString(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
+
 export default function AgendaPage() {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date('2026-05-17'));
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [view, setView] = useState<ViewMode>('timeline');
   const [filters, setFilters] = useState<AgendaFilters>(defaultFilters);
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null);
   const [showMap, setShowMap] = useState(false);
-  const [loading] = useState(false);
+
+  const todayDate = useMemo(() => new Date(), []);
+
+  const dateStr = toDateString(currentDate);
+  const { data, isLoading, error, refetch } = useAgenda(tenantId, dateStr);
+  const { data: agendaDrivers = [] } = useAgendaDrivers(tenantId);
+  const cancelMutation = useCancelBooking();
+
+  const dayItems = data?.items || [];
+  const allConflicts = data?.conflicts || [];
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -59,13 +78,9 @@ export default function AgendaPage() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const goToToday = () => setCurrentDate(new Date('2026-05-17'));
+  const goToToday = () => setCurrentDate(new Date());
   const goToPrev = () => setCurrentDate((d) => { const n = new Date(d); n.setDate(d.getDate() - 1); return n; });
   const goToNext = () => setCurrentDate((d) => { const n = new Date(d); n.setDate(d.getDate() + 1); return n; });
-
-  const dayItems = mockAgendaItems.filter((item) =>
-    isSameDay(new Date(item.scheduled_at), currentDate)
-  );
 
   const filtered = dayItems.filter((item) => {
     if (filters.status !== 'all' && item.status !== (filters.status as AgendaStatus)) return false;
@@ -87,11 +102,38 @@ export default function AgendaPage() {
   });
 
   const handleConflictItemClick = (id: string) => {
-    const found = mockAgendaItems.find((i) => i.id === id);
+    const found = dayItems.find((i) => i.id === id);
     if (found) setSelectedItem(found);
   };
 
-  const isToday = isSameDay(currentDate, new Date('2026-05-17'));
+  const handleCancelBooking = (id: string) => {
+    cancelMutation.mutate(
+      { id, tenantId, reason: 'Cancelado pelo operador' },
+      {
+        onSuccess: () => setSelectedItem(null),
+        onError: () => {
+          window.alert('Erro ao cancelar reserva. Tente novamente.');
+        },
+      },
+    );
+  };
+
+  const handleAssignDriver = (id: string) => {
+    const booking = dayItems.find((i) => i.id === id);
+    if (booking) {
+      window.alert('Atribuir motorista — funcionalidade em desenvolvimento.\nEm breve: seleção de motorista disponível.');
+    }
+  };
+
+  const handleReschedule = (id: string) => {
+    window.alert('Reagendar — funcionalidade em desenvolvimento.\nEm breve: calendário com seleção de novo horário.');
+  };
+
+  const handleViewBooking = (id: string) => {
+    window.location.href = `/admin/bookings?id=${id}`;
+  };
+
+  const isToday = isSameDay(currentDate, todayDate);
 
   return (
     <div className="p-6 max-w-[1600px]">
@@ -189,12 +231,12 @@ export default function AgendaPage() {
       </div>
 
       {/* KPI Summary strip */}
-      <AgendaSummaryStrip items={dayItems} allConflicts={mockConflicts} />
+      <AgendaSummaryStrip items={dayItems} allConflicts={allConflicts} />
 
       {/* Conflict alerts (only for today) */}
       {isToday && (
         <AgendaConflictAlerts
-          conflicts={mockConflicts}
+          conflicts={allConflicts}
           onItemClick={handleConflictItemClick}
         />
       )}
@@ -213,18 +255,38 @@ export default function AgendaPage() {
         onChange={setFilters}
         totalCount={dayItems.length}
         filteredCount={filtered.length}
+        drivers={agendaDrivers}
       />
 
       {/* Loading state */}
-      {loading && (
+      {isLoading && (
         <div className="bg-white border border-sand-200 rounded-2xl p-8 flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm text-navy-500">Carregando agenda...</p>
         </div>
       )}
 
+      {/* Error state */}
+      {error && (
+        <div className="bg-white border border-red-200 rounded-2xl p-8 flex flex-col items-center gap-3">
+          <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 border border-red-200">
+            <i className="ri-alert-line text-red-500 text-xl"></i>
+          </div>
+          <p className="text-sm font-semibold text-navy-800">Erro ao carregar a agenda</p>
+          <p className="text-xs text-navy-500 text-center max-w-md">{(error as Error)?.message || 'Não foi possível carregar os dados. Verifique sua conexão.'}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="h-9 flex items-center gap-2 px-4 bg-navy-950 text-white text-xs font-semibold rounded-xl hover:bg-navy-900 transition-colors cursor-pointer"
+          >
+            <i className="ri-refresh-line text-sm"></i>
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       {/* Content views */}
-      {!loading && (
+      {!isLoading && !error && (
         <>
           {view === 'timeline' && (
             <AgendaTimelineView
@@ -251,7 +313,7 @@ export default function AgendaPage() {
       )}
 
       {/* Empty state — no items for this date */}
-      {!loading && dayItems.length === 0 && (
+      {!isLoading && !error && dayItems.length === 0 && (
         <div className="bg-white border border-sand-200 rounded-2xl flex flex-col items-center justify-center py-20 mt-6">
           <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-sand-50 border border-sand-200 mb-5">
             <i className="ri-calendar-schedule-line text-navy-300 text-3xl"></i>
@@ -277,6 +339,10 @@ export default function AgendaPage() {
         <AgendaTransferDrawer
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
+          onCancel={handleCancelBooking}
+          onAssignDriver={handleAssignDriver}
+          onReschedule={handleReschedule}
+          onViewBooking={handleViewBooking}
         />
       )}
     </div>

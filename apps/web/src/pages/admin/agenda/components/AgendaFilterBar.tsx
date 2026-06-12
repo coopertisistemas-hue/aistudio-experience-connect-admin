@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { AgendaStatus } from '@/mocks/admin-agenda';
-import { mockDrivers } from '@/mocks/admin-agenda';
+import type { AgendaStatus } from '@/services/agenda';
 
 export interface AgendaFilters {
   search: string;
@@ -15,6 +14,7 @@ interface AgendaFilterBarProps {
   onChange: (f: AgendaFilters) => void;
   totalCount: number;
   filteredCount: number;
+  drivers?: { id: string; name: string; vehicle_type: string }[];
 }
 
 const statusTabs: { label: string; value: AgendaStatus | 'all' }[] = [
@@ -27,7 +27,7 @@ const statusTabs: { label: string; value: AgendaStatus | 'all' }[] = [
   { label: 'Cancelado', value: 'cancelled' },
 ];
 
-export default function AgendaFilterBar({ filters, onChange, totalCount, filteredCount }: AgendaFilterBarProps) {
+export default function AgendaFilterBar({ filters, onChange, totalCount, filteredCount, drivers = [] }: AgendaFilterBarProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const set = (p: Partial<AgendaFilters>) => onChange({ ...filters, ...p });
 
@@ -111,7 +111,7 @@ export default function AgendaFilterBar({ filters, onChange, totalCount, filtere
                 className="w-full h-9 px-3 text-xs bg-sand-50 border border-sand-200 rounded-lg text-navy-700 focus:outline-none focus:border-teal-300 cursor-pointer"
               >
                 <option value="all">Todos</option>
-                {mockDrivers.map((d) => (
+                {drivers.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
               </select>
