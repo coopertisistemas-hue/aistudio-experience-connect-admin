@@ -1027,6 +1027,38 @@ destination_coords: Json | null;
           created_at?: string;
         };
       };
+      contact_messages: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          name: string;
+          email: string;
+          phone: string | null;
+          subject: string;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          name: string;
+          email: string;
+          phone?: string | null;
+          subject: string;
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          name?: string;
+          email?: string;
+          phone?: string | null;
+          subject?: string;
+          message?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: {

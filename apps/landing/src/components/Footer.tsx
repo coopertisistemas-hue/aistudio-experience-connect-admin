@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const quickLinks = [
   { to: '/', label: 'Início' },
   { to: '/#experiencias', label: 'Experiências' },
-  { to: '/#contato', label: 'Contato' },
+  { to: '/contato', label: 'Contato' },
 ];
 
 const socialLinks = [

@@ -8,6 +8,7 @@ import { RouteDetail } from '@/pages/RouteDetail';
 import { Booking } from '@/pages/Booking';
 import { BookingConfirm } from '@/pages/BookingConfirm';
 import { BookingStatus } from '@/pages/BookingStatus';
+import { Contact } from '@/pages/Contact';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -60,6 +61,14 @@ function App() {
           element={
             <Layout>
               <BookingStatus />
+            </Layout>
+          }
+        />
+        <Route
+          path="/contato"
+          element={
+            <Layout>
+              <Contact />
             </Layout>
           }
         />
