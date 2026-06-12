@@ -5,6 +5,40 @@
 
 ---
 
+## [v0.6.3-ci-e2e] - 2026-06-12
+
+### Added
+- **CI Pipeline:** E2E test step added to `.github/workflows/ci.yml` — runs Playwright tests for both admin and landing projects after build.
+
+---
+
+## [v0.6.2-booking-e2e] - 2026-06-12
+
+### Added
+- **E2E Tests — Booking Flow:** New `apps/web/e2e/booking.spec.ts` with tests for booking page load, booking status page render, and booking confirm page render.
+
+---
+
+## [v0.6.1-get-booking-edge-function] - 2026-06-12
+
+### Added
+- **Edge Function — `get-booking`:** `supabase/functions/get-booking/index.ts` uses `service_role` to query `bookings`, `routes`, `payments`, and `vehicle_slots`. Replaces direct Supabase query in the landing service.
+
+### Changed
+- **Landing Service — `getBooking`:** Now calls edge function instead of direct Supabase query, fixing the CRITICAL security audit finding.
+
+---
+
+## [v0.6.0-wave-3-audit-fixes] - 2026-06-12
+
+### Added
+- **Claude Audit Fixes — Wave 3:** All 3 blockers resolved.
+  - CRITICAL: `get-booking` edge function replaces direct Supabase query.
+  - CRITICAL: CI pipeline includes E2E tests.
+  - HIGH: E2E tests for booking flow, CHANGELOG updates, EXEC_PLAN_STATUS updates.
+
+---
+
 ## [v0.5.3-rpc-consolidated] - 2026-06-12
 
 ### Added

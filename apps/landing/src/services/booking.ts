@@ -180,7 +180,7 @@ export const publicBookingService = {
   },
 
   async getBooking(bookingId: string): Promise<BookingStatusData | null> {
-    // Prefer cached data from sessionStorage to avoid direct Supabase query
+    // Prefer cached data from sessionStorage
     const cached = sessionStorage.getItem(`booking:${bookingId}`);
     if (cached) {
       try {
@@ -199,23 +199,25 @@ export const publicBookingService = {
       }
     }
 
-    // FALLBACK: direct Supabase query — SECURITY RISK (bypasses RLS, exposes PII).
-    // Replace with a get-booking edge function once available.
-    const { data, error } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        routes!bookings_route_id_fkey(*),
-        payments!payments_booking_id_fkey(*)
-      `)
-      .eq('id', bookingId)
-      .maybeSingle();
+    const sb = supabase as any;
+    const { data, error } = await invokeEdgeFunction<Record<string, unknown>>(
+      sb,
+      'get-booking',
+      { booking_id: bookingId },
+    );
 
     if (error || !data) {
       console.error('[publicBookingService.getBooking]', error);
       return null;
     }
 
-    return mapBookingStatus(data as unknown as Record<string, unknown>);
+    // Merge booking + route + payments into flat structure for mapBookingStatus
+    const flatData: Record<string, unknown> = {
+      ...(data.booking as Record<string, unknown> || {}),
+      routes: data.route ? data.route : null,
+      payments: data.payments || [],
+    };
+
+    return mapBookingStatus(flatData);
   },
 };
