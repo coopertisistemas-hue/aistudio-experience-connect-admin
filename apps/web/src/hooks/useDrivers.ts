@@ -45,7 +45,7 @@ export function useDeleteDriver() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => driverService.delete(id),
+    mutationFn: ({ id, tenantId }: { id: string; tenantId: string }) => driverService.delete(id, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drivers'] });
     },

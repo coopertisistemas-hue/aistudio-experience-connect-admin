@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatCurrency } from '@connect/core';
 
 interface RouteDetailDrawerProps {
   route: any;
@@ -87,7 +88,7 @@ export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: 
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-lg border ${s.badge}`}>{s.label}</span>
                 <span className="text-[10px] font-bold text-teal-600">
-                  R$ {route.base_price.toFixed(0)}
+                  {formatCurrency(route.base_price)}
                 </span>
               </div>
             </div>
@@ -146,7 +147,7 @@ export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: 
                 </div>
                 <div>
                   <p className="text-[10px] text-navy-400 uppercase tracking-wider">Preço Base</p>
-                  <p className="text-xs font-bold text-teal-700 mt-0.5">R$ {route.base_price.toFixed(2)}</p>
+                  <p className="text-xs font-bold text-teal-700 mt-0.5">{formatCurrency(route.base_price)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-navy-400 uppercase tracking-wider">Status</p>
@@ -166,7 +167,7 @@ export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: 
               {[
                 { label: 'Transfers Total', value: route.transfers_total.toLocaleString('pt-BR') },
                 { label: 'Este mês', value: route.transfers_this_month },
-                { label: 'Ticket Médio', value: `R$ ${route.avg_ticket.toFixed(0)}` },
+                { label: 'Ticket Médio', value: formatCurrency(route.avg_ticket) },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="font-serif text-xl font-semibold text-white">{stat.value}</p>
@@ -390,9 +391,9 @@ export default function RouteDetailDrawer({ route, onClose, onCreateTransfer }: 
             </h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {[
-                { label: 'Preço Base', value: `R$ ${route.base_price.toFixed(2)}`, icon: 'ri-price-tag-3-line', accent: false },
-                { label: 'Ticket Médio', value: `R$ ${route.avg_ticket.toFixed(2)}`, icon: 'ri-ticket-line', accent: false },
-                { label: 'Receita do Mês', value: `R$ ${route.revenue_this_month.toLocaleString('pt-BR')}`, icon: 'ri-calendar-check-line', accent: true },
+                { label: 'Preço Base', value: formatCurrency(route.base_price), icon: 'ri-price-tag-3-line', accent: false },
+                { label: 'Ticket Médio', value: formatCurrency(route.avg_ticket), icon: 'ri-ticket-line', accent: false },
+                { label: 'Receita do Mês', value: formatCurrency(route.revenue_this_month), icon: 'ri-calendar-check-line', accent: true },
                 { label: 'Receita Total', value: `R$ ${(route.revenue_total / 1000).toFixed(1)}k`, icon: 'ri-bar-chart-2-line', accent: true },
               ].map((item) => (
                 <div key={item.label} className={`rounded-xl border p-3 ${item.accent ? 'bg-teal-50 border-teal-100' : 'bg-sand-50 border-sand-200'}`}>

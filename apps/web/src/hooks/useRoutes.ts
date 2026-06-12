@@ -45,7 +45,7 @@ export function useDeleteRoute() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => routeService.delete(id),
+    mutationFn: ({ id, tenantId }: { id: string; tenantId: string }) => routeService.delete(id, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes'] });
     },

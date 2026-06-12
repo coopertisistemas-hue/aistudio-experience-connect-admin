@@ -105,10 +105,11 @@ export const driverService = {
     return result;
   },
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, tenantId: string): Promise<boolean> {
     const { error } = await (supabase as any)
       .from('drivers')
       .update({ deleted_at: new Date().toISOString() })
+      .eq('tenant_id', tenantId)
       .eq('id', id);
 
     if (error) {

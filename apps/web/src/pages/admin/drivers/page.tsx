@@ -113,67 +113,47 @@ export default function DriversPage() {
         }
       />
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <KPISkeleton />
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white border border-sand-200 rounded-2xl p-5 animate-pulse">
-                <div className="h-4 bg-sand-200 rounded-lg w-2/3 mb-3" />
-                <div className="h-14 bg-sand-100 rounded-xl mb-4" />
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  {[...Array(4)].map((_, j) => <div key={j} className="h-10 bg-sand-100 rounded-xl" />)}
-                </div>
-                <div className="h-8 bg-sand-100 rounded-xl" />
-              </div>
-            ))}
+      {isLoading ? <KPISkeleton /> : <DriversSummaryStrip drivers={drivers} />}
+
+      {!isLoading && drivers.some((d: any) => d.performance?.incidents > 0) && (
+        <div className="mb-5 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 border border-amber-200 flex-shrink-0">
+            <i className="ri-alert-line text-amber-600 text-sm"></i>
           </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-amber-800">
+              {drivers.filter((d: any) => d.performance?.incidents > 0).length} motorista(s) com ocorrências registradas
+            </p>
+            <p className="text-[10px] text-amber-600 mt-0.5">
+              Verifique os perfis e tome as ações necessárias para manter a qualidade da operação.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFilters((f) => ({ ...f, status: 'on_trip' }))}
+            className="text-[10px] font-semibold text-amber-700 bg-white border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Ver detalhes
+          </button>
         </div>
-      ) : (
-        <>
-          <DriversSummaryStrip drivers={drivers} />
-
-          {drivers.some((d: any) => d.performance?.incidents > 0) && (
-            <div className="mb-5 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-              <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 border border-amber-200 flex-shrink-0">
-                <i className="ri-alert-line text-amber-600 text-sm"></i>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-amber-800">
-                  {drivers.filter((d: any) => d.performance?.incidents > 0).length} motorista(s) com ocorrências registradas
-                </p>
-                <p className="text-[10px] text-amber-600 mt-0.5">
-                  Verifique os perfis e tome as ações necessárias para manter a qualidade da operação.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFilters((f) => ({ ...f, status: 'on_trip' }))}
-                className="text-[10px] font-semibold text-amber-700 bg-white border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer whitespace-nowrap"
-              >
-                Ver detalhes
-              </button>
-            </div>
-          )}
-
-          <DriversFilterBar
-            filters={filters}
-            onChange={setFilters}
-            totalCount={drivers.length}
-            filteredCount={filtered.length}
-          />
-
-          <DriversGrid
-            drivers={filtered}
-            onSelect={(d: any) => {
-              setShowNewForm(false);
-              setSelectedDriver(d);
-            }}
-            selectedId={selectedDriver?.id}
-            loading={false}
-          />
-        </>
       )}
+
+      <DriversFilterBar
+        filters={filters}
+        onChange={setFilters}
+        totalCount={drivers.length}
+        filteredCount={filtered.length}
+      />
+
+      <DriversGrid
+        drivers={filtered}
+        onSelect={(d: any) => {
+          setShowNewForm(false);
+          setSelectedDriver(d);
+        }}
+        selectedId={selectedDriver?.id}
+        loading={isLoading}
+      />
 
       {selectedDriver && (
         <DriverDetailDrawer

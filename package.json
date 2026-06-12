@@ -22,6 +22,7 @@
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules",
     "test": "turbo run test",
+    "test:e2e": "playwright test --config=apps/web/playwright.config.ts",
     "test:ci": "turbo run test:ci",
     "db:generate": "supabase gen types typescript --local > packages/core/src/types/database.ts",
     "db:migrate": "supabase db push",

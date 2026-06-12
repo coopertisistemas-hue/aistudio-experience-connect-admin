@@ -96,44 +96,21 @@ export default function RoutesPage() {
         }
       />
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <KPISkeleton />
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white border border-sand-200 rounded-2xl p-5 animate-pulse">
-                <div className="h-4 bg-sand-200 rounded-lg w-2/3 mb-3" />
-                <div className="h-14 bg-sand-100 rounded-xl mb-4" />
-                <div className="grid grid-cols-4 gap-2 mb-3">
-                  {[...Array(4)].map((_, j) => <div key={j} className="h-10 bg-sand-100 rounded-xl" />)}
-                </div>
-                <div className="h-8 bg-sand-100 rounded-xl" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* KPI Strip */}
-          <RoutesSummaryStrip routes={routes} />
+      {isLoading ? <KPISkeleton /> : <RoutesSummaryStrip routes={routes} />}
 
-          {/* Filters */}
-          <RoutesFilterBar
-            filters={filters}
-            onChange={setFilters}
-            total={routes.length}
-            filtered={filtered.length}
-          />
+      <RoutesFilterBar
+        filters={filters}
+        onChange={setFilters}
+        total={routes.length}
+        filtered={filtered.length}
+      />
 
-          {/* Grid */}
-          <RoutesGrid
-            routes={filtered}
-            onSelect={setSelectedRoute}
-            selectedId={selectedRoute?.id}
-            loading={false}
-          />
-        </>
-      )}
+      <RoutesGrid
+        routes={filtered}
+        onSelect={setSelectedRoute}
+        selectedId={selectedRoute?.id}
+        loading={isLoading}
+      />
 
       {/* Detail Drawer */}
       {selectedRoute && (
