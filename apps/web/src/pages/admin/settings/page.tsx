@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import {
-  mockTenant,
-  mockTeamMembers,
   mockNotificationSettings,
   mockIntegrations,
-  mockPermissions,
   mockSecuritySessions,
 } from '@/mocks/admin-settings';
+import { useTenant, useTeam } from '@/hooks/useSettings';
+import { useAuth } from '@/hooks/useAuth';
 import SettingsNavigation from './components/SettingsNavigation';
 import type { SettingsSection } from './components/SettingsNavigation';
 import SettingsEmpresa from './components/SettingsEmpresa';
@@ -41,11 +40,33 @@ const toastColors = {
   warning: 'bg-amber-500 text-white',
 };
 
+function SkeletonSection() {
+  return (
+    <div className="flex flex-col gap-5 animate-pulse">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-white border border-stone-200 rounded-2xl p-5">
+          <div className="h-4 bg-stone-200 rounded w-1/3 mb-4" />
+          <div className="space-y-3">
+            <div className="h-3 bg-stone-100 rounded w-3/4" />
+            <div className="h-3 bg-stone-100 rounded w-1/2" />
+            <div className="h-3 bg-stone-100 rounded w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [section, setSection] = useState<SettingsSection>('empresa');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: tenant, isLoading: tenantLoading, error: tenantError } = useTenant(tenantId);
+  const { data: teamMembers, isLoading: teamLoading } = useTeam(tenantId);
 
   const addToast = (message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
@@ -57,21 +78,35 @@ export default function SettingsPage() {
   const meta = sectionMeta[section];
 
   const renderSection = () => {
+    if (tenantLoading) return <SkeletonSection />;
+    if (tenantError) {
+      return (
+        <div className="flex flex-col items-center gap-4 py-16">
+          <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-red-50 border border-red-200">
+            <i className="ri-error-warning-line text-red-500 text-2xl"></i>
+          </div>
+          <p className="text-sm font-semibold text-stone-800">Erro ao carregar configurações</p>
+          <p className="text-xs text-stone-500">Tente recarregar a página.</p>
+        </div>
+      );
+    }
+    if (!tenant) return null;
+
     switch (section) {
       case 'empresa':
-        return <SettingsEmpresa tenant={mockTenant} onSave={(msg) => addToast(msg)} />;
+        return <SettingsEmpresa tenant={tenant} onSave={(msg) => addToast(msg)} />;
       case 'operacao':
-        return <SettingsOperacao tenant={mockTenant} onSave={(msg) => addToast(msg)} />;
+        return <SettingsOperacao tenant={tenant} onSave={(msg) => addToast(msg)} />;
       case 'equipe':
-        return <SettingsEquipe members={mockTeamMembers} onSave={(msg) => addToast(msg)} />;
+        return <SettingsEquipe members={teamMembers || []} loading={teamLoading} onSave={(msg) => addToast(msg)} />;
       case 'permissoes':
-        return <SettingsPermissoes permissions={mockPermissions} />;
+        return <SettingsPermissoes />;
       case 'notificacoes':
         return <SettingsNotificacoes settings={mockNotificationSettings} onSave={(msg) => addToast(msg)} />;
       case 'integracoes':
         return <SettingsIntegracoes integrations={mockIntegrations} onSave={(msg) => addToast(msg)} />;
       case 'branding':
-        return <SettingsBranding onSave={(msg) => addToast(msg)} />;
+        return <SettingsBranding onSave={(msg) => addToast(msg)} branding={tenant.branding} tenantId={tenant.id} />;
       case 'seguranca':
         return <SettingsSeguranca sessions={mockSecuritySessions} onSave={(msg) => addToast(msg)} />;
       default:
@@ -102,7 +137,7 @@ export default function SettingsPage() {
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-xs font-semibold text-stone-400 uppercase tracking-widest">
-              {mockTenant.name}
+              {tenant?.name || 'Carregando...'}
             </span>
             <span className="text-stone-300">/</span>
             <span className="text-xs font-semibold text-stone-500">Configurações</span>

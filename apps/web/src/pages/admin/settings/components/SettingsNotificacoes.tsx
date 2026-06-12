@@ -18,6 +18,7 @@ const channels: Channel[] = ['email', 'push', 'whatsapp'];
 
 const categoryOrder = ['Operação', 'Financeiro', 'Motoristas', 'Check-in'];
 
+// TODO(future): persist preferences in notifications table (not yet created)
 export default function SettingsNotificacoes({ settings, onSave }: SettingsNotificacoesProps) {
   const [state, setState] = useState<Record<string, Record<Channel, boolean>>>(() => {
     const map: Record<string, Record<Channel, boolean>> = {};

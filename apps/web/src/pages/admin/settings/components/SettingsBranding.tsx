@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { useUpdateBranding } from '@/hooks/useSettings';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SettingsBrandingProps {
   onSave: (msg: string) => void;
+  branding?: Record<string, unknown>;
+  tenantId?: string;
 }
 
 const presetColors = [
@@ -19,22 +23,27 @@ const themes = [
   { id: 'dark', label: 'Escuro', icon: 'ri-moon-line' },
 ];
 
-export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
-  const [primaryColor, setPrimaryColor] = useState('#0d9488');
-  const [companyName, setCompanyName] = useState('Experience Connect');
-  const [tagline, setTagline] = useState('Operação de transfers premium');
-  const [theme, setTheme] = useState('light');
+export default function SettingsBranding({ onSave, branding, tenantId }: SettingsBrandingProps) {
+  const [primaryColor, setPrimaryColor] = useState((branding?.primary_color as string) || '#0d9488');
+  const [companyName, setCompanyName] = useState((branding?.company_name as string) || 'Experience Connect');
+  const [tagline, setTagline] = useState((branding?.tagline as string) || 'Operação de transfers premium');
+  const [theme, setTheme] = useState((branding?.theme as string) || 'light');
   const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  const set = (fn: () => void) => { fn(); setDirty(true); };
+  const { user } = useAuth();
+  const updateBranding = useUpdateBranding();
 
   const handleSave = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setSaving(false);
-    setDirty(false);
-    onSave('Configurações de branding salvas.');
+    try {
+      await updateBranding.mutateAsync({
+        tenantId: tenantId || user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '',
+        branding: { primary_color: primaryColor, company_name: companyName, tagline, theme },
+      });
+      setDirty(false);
+      onSave('Configurações de branding salvas.');
+    } catch {
+      onSave('Erro ao salvar branding.');
+    }
   };
 
   return (
@@ -78,7 +87,7 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
             <input
               type="text"
               value={companyName}
-              onChange={(e) => set(() => setCompanyName(e.target.value))}
+              onChange={(e) => { setCompanyName(e.target.value); setDirty(true); }}
               className="px-3 py-2.5 text-sm border border-stone-200 rounded-xl bg-stone-50 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-colors"
             />
           </div>
@@ -87,7 +96,7 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
             <input
               type="text"
               value={tagline}
-              onChange={(e) => set(() => setTagline(e.target.value))}
+              onChange={(e) => { setTagline(e.target.value); setDirty(true); }}
               className="px-3 py-2.5 text-sm border border-stone-200 rounded-xl bg-stone-50 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-colors"
               placeholder="Frase curta da operação"
             />
@@ -104,7 +113,7 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
             <button
               key={c.hex}
               type="button"
-              onClick={() => set(() => setPrimaryColor(c.hex))}
+              onClick={() => { setPrimaryColor(c.hex); setDirty(true); }}
               title={c.label}
               className={`w-8 h-8 rounded-xl border-2 transition-all cursor-pointer flex-shrink-0 ${
                 primaryColor === c.hex ? 'border-stone-700 scale-110' : 'border-transparent hover:scale-105'
@@ -116,7 +125,7 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
             <input
               type="color"
               value={primaryColor}
-              onChange={(e) => set(() => setPrimaryColor(e.target.value))}
+              onChange={(e) => { setPrimaryColor(e.target.value); setDirty(true); }}
               className="w-8 h-8 border-none cursor-pointer bg-transparent p-0.5"
             />
             <span className="text-xs font-mono text-stone-600 pr-3">{primaryColor}</span>
@@ -150,7 +159,7 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
             <button
               key={t.id}
               type="button"
-              onClick={() => set(() => setTheme(t.id))}
+              onClick={() => { setTheme(t.id); setDirty(true); }}
               className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
                 theme === t.id
                   ? 'bg-teal-500/[0.10] border-teal-300/60 text-teal-700'
@@ -207,13 +216,13 @@ export default function SettingsBranding({ onSave }: SettingsBrandingProps) {
         <button
           type="button"
           onClick={handleSave}
-          disabled={!dirty || saving}
+          disabled={!dirty || updateBranding.isPending}
           className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
-            dirty && !saving ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
+            dirty && !updateBranding.isPending ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
           }`}
         >
-          {saving ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
-          {saving ? 'Salvando…' : 'Salvar branding'}
+          {updateBranding.isPending ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
+          {updateBranding.isPending ? 'Salvando…' : 'Salvar branding'}
         </button>
       </div>
     </div>

@@ -53,6 +53,7 @@ function formatSync(ts: string | null): string {
   return 'Sync: ' + d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+// TODO(future): persist integration configs in provider_integrations table (not yet created)
 export default function SettingsIntegracoes({ integrations, onSave }: SettingsIntegracoesProps) {
   const [reconnecting, setReconnecting] = useState<string | null>(null);
 

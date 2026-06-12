@@ -12,6 +12,7 @@ function formatDate(ts: string): string {
     ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+// TODO(future): use auth.sessions and auth.users from Supabase Auth (out of scope for now)
 export default function SettingsSeguranca({ sessions, onSave }: SettingsSegurancaProps) {
   const [showPwForm, setShowPwForm] = useState(false);
   const [pw, setPw] = useState({ current: '', newPw: '', confirm: '' });

@@ -1,8 +1,17 @@
-import type { MockPermissionRow } from '@/mocks/admin-settings';
-
-interface SettingsPermissoesProps {
-  permissions: MockPermissionRow[];
-}
+const permissionMatrix = [
+  { module: 'Visão Geral', icon: 'ri-dashboard-3-line', owner: true, admin: true, operator: true },
+  { module: 'Reservas', icon: 'ri-calendar-check-line', owner: true, admin: true, operator: true },
+  { module: 'Transfers', icon: 'ri-car-line', owner: true, admin: true, operator: true },
+  { module: 'Agenda', icon: 'ri-calendar-schedule-line', owner: true, admin: true, operator: true },
+  { module: 'Rotas', icon: 'ri-route-line', owner: true, admin: true, operator: false },
+  { module: 'Check-ins', icon: 'ri-check-double-line', owner: true, admin: true, operator: true },
+  { module: 'Motoristas', icon: 'ri-steering-2-line', owner: true, admin: true, operator: false },
+  { module: 'Veículos', icon: 'ri-taxi-line', owner: true, admin: true, operator: false },
+  { module: 'Pagamentos', icon: 'ri-secure-payment-line', owner: true, admin: true, operator: false },
+  { module: 'Clientes', icon: 'ri-contacts-book-2-line', owner: true, admin: true, operator: false },
+  { module: 'Relatórios', icon: 'ri-bar-chart-2-line', owner: true, admin: true, operator: false },
+  { module: 'Configurações', icon: 'ri-settings-3-line', owner: true, admin: false, operator: false },
+];
 
 const roleMeta = {
   owner: { label: 'Proprietário', color: 'text-amber-700', bg: 'bg-amber-50', icon: 'ri-vip-crown-line' },
@@ -10,8 +19,9 @@ const roleMeta = {
   operator: { label: 'Operador', color: 'text-stone-600', bg: 'bg-stone-100', icon: 'ri-user-settings-line' },
 };
 
-export default function SettingsPermissoes({ permissions }: SettingsPermissoesProps) {
+export default function SettingsPermissoes() {
   const roles = ['owner', 'admin', 'operator'] as const;
+  const permissions = permissionMatrix;
 
   return (
     <div className="flex flex-col gap-5">

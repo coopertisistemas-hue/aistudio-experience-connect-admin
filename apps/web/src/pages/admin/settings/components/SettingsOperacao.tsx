@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { MockTenant } from '@/mocks/admin-settings';
+import { useUpdateSettings } from '@/hooks/useSettings';
+import type { TenantProfile } from '@/services/settings';
 
 interface SettingsOperacaoProps {
-  tenant: MockTenant;
+  tenant: TenantProfile;
   onSave: (msg: string) => void;
 }
 
@@ -33,8 +34,9 @@ export default function SettingsOperacao({ tenant, onSave }: SettingsOperacaoPro
     require_checkin: tenant.require_checkin_confirmation,
     operating_days: [...tenant.operating_days],
   });
-  const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+
+  const updateSettings = useUpdateSettings();
 
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -52,11 +54,26 @@ export default function SettingsOperacao({ tenant, onSave }: SettingsOperacaoPro
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setSaving(false);
-    setDirty(false);
-    onSave('Preferências operacionais salvas com sucesso.');
+    try {
+      await updateSettings.mutateAsync({
+        tenantId: tenant.id,
+        settings: {
+          timezone: form.timezone,
+          hours_start: form.hours_start,
+          hours_end: form.hours_end,
+          transfer_duration: form.transfer_duration,
+          vehicle_capacity: form.vehicle_capacity,
+          delay_threshold: form.delay_threshold,
+          auto_confirm: form.auto_confirm,
+          require_checkin: form.require_checkin,
+          operating_days: form.operating_days,
+        },
+      });
+      setDirty(false);
+      onSave('Preferências operacionais salvas com sucesso.');
+    } catch {
+      onSave('Erro ao salvar preferências operacionais.');
+    }
   };
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
@@ -225,13 +242,13 @@ export default function SettingsOperacao({ tenant, onSave }: SettingsOperacaoPro
         <button
           type="button"
           onClick={handleSave}
-          disabled={!dirty || saving}
+          disabled={!dirty || updateSettings.isPending}
           className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
-            dirty && !saving ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
+            dirty && !updateSettings.isPending ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
           }`}
         >
-          {saving ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
-          {saving ? 'Salvando…' : 'Salvar alterações'}
+          {updateSettings.isPending ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
+          {updateSettings.isPending ? 'Salvando…' : 'Salvar alterações'}
         </button>
       </div>
     </div>

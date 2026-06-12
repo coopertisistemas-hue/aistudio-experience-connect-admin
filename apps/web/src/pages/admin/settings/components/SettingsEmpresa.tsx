@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { MockTenant } from '@/mocks/admin-settings';
+import { useUpdateTenant } from '@/hooks/useSettings';
+import type { TenantProfile } from '@/services/settings';
 
 interface SettingsEmpresaProps {
-  tenant: MockTenant;
+  tenant: TenantProfile;
   onSave: (msg: string) => void;
 }
 
@@ -28,8 +29,9 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
     city: tenant.city,
     country: tenant.country,
   });
-  const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+
+  const updateTenant = useUpdateTenant();
 
   const plan = planLabels[tenant.plan];
   const status = statusLabels[tenant.status];
@@ -40,11 +42,13 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setSaving(false);
-    setDirty(false);
-    onSave('Configurações da empresa salvas com sucesso.');
+    try {
+      await updateTenant.mutateAsync({ tenantId: tenant.id, data: form });
+      setDirty(false);
+      onSave('Configurações da empresa salvas com sucesso.');
+    } catch {
+      onSave('Erro ao salvar configurações da empresa.');
+    }
   };
 
   return (
@@ -203,13 +207,13 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
           <button
             type="button"
             onClick={handleSave}
-            disabled={!dirty || saving}
+            disabled={!dirty || updateTenant.isPending}
             className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
-              dirty && !saving ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
+              dirty && !updateTenant.isPending ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
             }`}
           >
-            {saving ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
-            {saving ? 'Salvando…' : 'Salvar alterações'}
+            {updateTenant.isPending ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-save-line text-sm"></i>}
+            {updateTenant.isPending ? 'Salvando…' : 'Salvar alterações'}
           </button>
         </div>
       </div>

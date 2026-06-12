@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import type { MockUserTenant } from '@/mocks/admin-settings';
+import { useInviteMember } from '@/hooks/useSettings';
+import { useAuth } from '@/hooks/useAuth';
+import type { UserTenantWithUser } from '@/services/settings';
 
 interface SettingsEquipeProps {
-  members: MockUserTenant[];
+  members: UserTenantWithUser[];
+  loading?: boolean;
   onSave: (msg: string) => void;
 }
 
@@ -27,6 +30,11 @@ const avatarColors = [
   'bg-stone-500/20 text-stone-700',
 ];
 
+function getInitials(name: string | null): string {
+  if (!name) return '?';
+  return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
 function formatLastAccess(ts: string): string {
   if (!ts) return 'Nunca acessou';
   const d = new Date(ts);
@@ -34,20 +42,28 @@ function formatLastAccess(ts: string): string {
     ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function SettingsEquipe({ members, onSave }: SettingsEquipeProps) {
+export default function SettingsEquipe({ members, loading, onSave }: SettingsEquipeProps) {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'operator'>('operator');
-  const [sending, setSending] = useState(false);
+
+  const { user } = useAuth();
+  const inviteMember = useInviteMember();
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) return;
-    setSending(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSending(false);
-    setInviteEmail('');
-    setShowInvite(false);
-    onSave(`Convite enviado para ${inviteEmail}`);
+    try {
+      await inviteMember.mutateAsync({
+        tenantId: user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '',
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+      setInviteEmail('');
+      setShowInvite(false);
+      onSave(`Convite enviado para ${inviteEmail}`);
+    } catch {
+      onSave('Erro ao enviar convite.');
+    }
   };
 
   const activeCount = members.filter((m) => m.status === 'active').length;
@@ -114,13 +130,13 @@ export default function SettingsEquipe({ members, onSave }: SettingsEquipeProps)
             <button
               type="button"
               onClick={handleInvite}
-              disabled={!inviteEmail.trim() || sending}
+              disabled={!inviteEmail.trim() || inviteMember.isPending}
               className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-colors cursor-pointer whitespace-nowrap ${
-                inviteEmail.trim() && !sending ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
+                inviteEmail.trim() && !inviteMember.isPending ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-stone-200 text-stone-400 cursor-default'
               }`}
             >
-              {sending ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-send-plane-line text-sm"></i>}
-              {sending ? 'Enviando…' : 'Enviar convite'}
+              {inviteMember.isPending ? <i className="ri-loader-4-line animate-spin text-sm"></i> : <i className="ri-send-plane-line text-sm"></i>}
+              {inviteMember.isPending ? 'Enviando…' : 'Enviar convite'}
             </button>
             <button
               type="button"
@@ -139,20 +155,30 @@ export default function SettingsEquipe({ members, onSave }: SettingsEquipeProps)
           <h3 className="text-sm font-semibold text-stone-800">Membros da equipe</h3>
         </div>
         <div className="divide-y divide-stone-100">
-          {members.map((member, idx) => {
+          {loading ? (
+            <div className="px-5 py-8 text-center text-xs text-stone-400">
+              <i className="ri-loader-4-line animate-spin text-base inline-block mb-2"></i>
+              <p>Carregando equipe...</p>
+            </div>
+          ) : members.length === 0 ? (
+            <div className="px-5 py-8 text-center text-xs text-stone-400">
+              <p>Nenhum membro encontrado.</p>
+            </div>
+          ) : members.map((member, idx) => {
             const role = roleConfig[member.role];
             const status = statusConfig[member.status];
             const avatarColor = avatarColors[idx % avatarColors.length];
+            const initials = getInitials(member.name);
             return (
-              <div key={member.id} className="flex items-center gap-4 px-5 py-4 hover:bg-stone-50/60 transition-colors">
+              <div key={member.user_id} className="flex items-center gap-4 px-5 py-4 hover:bg-stone-50/60 transition-colors">
                 {/* Avatar */}
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${avatarColor}`}>
-                  {member.avatar_initials}
+                  {initials}
                 </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-stone-900">{member.name}</span>
+                    <span className="text-sm font-semibold text-stone-900">{member.name || '—'}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${role.color}`}>
                       <i className={`${role.icon} text-[10px]`}></i>
                       {role.label}
