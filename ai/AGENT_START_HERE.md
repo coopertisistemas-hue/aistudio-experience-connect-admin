@@ -1,0 +1,21 @@
+# CONNECT Agent Start Here
+
+- Read `../AGENTS.md` first.
+- Read only the minimum needed context from:
+  - `AI_CONTEXT.md`
+  - `CONNECT_GUARDRAILS.md`
+  - `CONNECT_QA_GATES.md`
+  - `CONNECT_WORKFLOW.md`
+  - `../docs/ai/PROMPT_MINIMAL_STANDARD.md`
+- Follow this execution order: Diagnose -> Implement -> Validate -> Report.
+- Work only within approved scope; do not expand scope without approval.
+- Prefer short prompts with explicit file/module scope.
+- Treat security and tenant isolation as non-negotiable (`org_id`/`property_id`, RLS-first).
+- Never trust frontend authorization; enforce access in backend, Edge Functions, and RLS policies.
+- Never introduce secrets, credentials, tokens, or private keys in code, docs, or logs.
+- Use migrations only in `supabase/migrations/*.sql`; do not make manual schema drift changes.
+- Require idempotent SQL and a rollback or compensation path for DB-affecting changes.
+- Run only the smallest validation required by the task unless a broader gate is necessary.
+- Collect concise evidence for executed validations.
+- Keep integration contracts explicit and backward compatible by default.
+- If a rule conflict appears, prioritize security/compliance and escalate with options.
