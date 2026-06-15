@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MockIntegration } from '@/mocks/admin-settings';
+interface MockIntegration { id: string; name: string; provider: string; status: string; last_sync: string | null; icon: string; category: string; description: string; config_hint: string };
 
 interface SettingsIntegracoesProps {
   integrations: MockIntegration[];

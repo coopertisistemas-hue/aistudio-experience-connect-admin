@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import {
-  mockNotificationSettings,
-  mockIntegrations,
-  mockSecuritySessions,
-} from '@/mocks/admin-settings';
+const mockNotificationSettings: any[] = [];
+const mockIntegrations: any[] = [];
+const mockSecuritySessions: any[] = [];
 import { useTenant, useTeam } from '@/hooks/useSettings';
 import { useAuth } from '@/hooks/useAuth';
 import SettingsNavigation from './components/SettingsNavigation';

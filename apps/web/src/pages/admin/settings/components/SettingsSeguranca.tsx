@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { MockSecuritySession } from '@/mocks/admin-settings';
+interface MockSecuritySession { id: string; device: string; browser: string; ip: string; lastActive: string; current: boolean; is_current: boolean; location: string; last_active: string }
 
 interface SettingsSegurancaProps {
   sessions: MockSecuritySession[];

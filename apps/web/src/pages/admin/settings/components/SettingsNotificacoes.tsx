@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { MockNotificationSetting } from '@/mocks/admin-settings';
+interface ChannelConfig { id: string; label: string; icon: string; color: string; enabled: boolean }
+interface MockNotificationSetting { id?: string; category: string; channels: ChannelConfig[]; label?: string; description?: string; email?: boolean; push?: boolean; whatsapp?: boolean }
 
 interface SettingsNotificacoesProps {
   settings: MockNotificationSetting[];
