@@ -1,4 +1,10 @@
-import { mockRevenueByCategory, mockMonthlyRevenue, mockExecutiveSummary } from '@/mocks/admin-reports';
+import type { RevenueByCategoryItem, MonthlyRevenueItem, ExecutiveSummary } from '@/services/reports';
+
+interface Props {
+  revenueByCategory: RevenueByCategoryItem[];
+  monthlyRevenue: MonthlyRevenueItem[];
+  summary: ExecutiveSummary;
+}
 
 function formatCurrency(n: number) {
   if (n >= 1_000_000) return `R$ ${(n / 1_000_000).toFixed(2)}M`;
@@ -6,12 +12,12 @@ function formatCurrency(n: number) {
   return `R$ ${n.toLocaleString('pt-BR')}`;
 }
 
-function MonthlyBarChart() {
-  const maxRev = Math.max(...mockMonthlyRevenue.map((m) => m.revenue), 1);
+function MonthlyBarChart({ data }: { data: MonthlyRevenueItem[] }) {
+  const maxRev = Math.max(...data.map((m) => m.revenue), 1);
   const W = 40;
   const GAP = 8;
   const H = 80;
-  const total = mockMonthlyRevenue.length;
+  const total = data.length;
   const svgW = total * (W + GAP) - GAP;
   const lastIdx = total - 1;
 
@@ -23,7 +29,7 @@ function MonthlyBarChart() {
           <line key={pct} x1={0} y1={H - pct * H} x2={svgW} y2={H - pct * H} stroke="#f5f5f4" strokeWidth={1} />
         ))}
 
-        {mockMonthlyRevenue.map((m, i) => {
+        {data.map((m, i) => {
           const barH = Math.max(4, (m.revenue / maxRev) * H);
           const x = i * (W + GAP);
           const y = H - barH;
@@ -56,8 +62,8 @@ function MonthlyBarChart() {
   );
 }
 
-function DonutChart() {
-  const total = mockRevenueByCategory.reduce((a, c) => a + c.revenue, 0);
+function DonutChart({ data }: { data: RevenueByCategoryItem[] }) {
+  const total = data.reduce((a, c) => a + c.revenue, 0);
   const size = 120;
   const cx = size / 2;
   const cy = size / 2;
@@ -66,7 +72,7 @@ function DonutChart() {
   const circumference = 2 * Math.PI * r;
 
   let cumulative = 0;
-  const segments = mockRevenueByCategory.map((cat) => {
+  const segments = data.map((cat) => {
     const pct = cat.revenue / total;
     const dash = pct * circumference;
     const offset = cumulative * circumference;
@@ -99,8 +105,8 @@ function DonutChart() {
   );
 }
 
-export default function ReportsRevenueSummary() {
-  const s = mockExecutiveSummary;
+export default function ReportsRevenueSummary({ revenueByCategory, monthlyRevenue, summary }: Props) {
+  const s = summary;
 
   return (
     <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
@@ -133,16 +139,16 @@ export default function ReportsRevenueSummary() {
         {/* Monthly chart */}
         <div>
           <p className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-3">Receita Mensal (7 meses)</p>
-          <MonthlyBarChart />
+          <MonthlyBarChart data={monthlyRevenue} />
         </div>
 
         {/* By category */}
         <div>
           <p className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-3">Receita por Categoria</p>
           <div className="flex items-center gap-6">
-            <DonutChart />
+            <DonutChart data={revenueByCategory} />
             <div className="flex-1 space-y-2.5">
-              {mockRevenueByCategory.map((cat) => (
+              {revenueByCategory.map((cat) => (
                 <div key={cat.category}>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <div className="flex items-center gap-2">

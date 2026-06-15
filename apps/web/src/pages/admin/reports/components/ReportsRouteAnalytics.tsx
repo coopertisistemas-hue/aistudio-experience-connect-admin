@@ -1,4 +1,6 @@
-import { mockRouteAnalytics } from '@/mocks/admin-reports';
+import type { RouteAnalytic } from '@/services/reports';
+
+interface Props { data: RouteAnalytic[] }
 
 const categoryConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
   airport:   { label: 'Aeroporto',  bg: 'bg-teal-50',           text: 'text-teal-700',  icon: 'ri-flight-takeoff-line' },
@@ -19,8 +21,8 @@ function formatRevenue(n: number) {
   return `R$ ${n.toLocaleString('pt-BR')}`;
 }
 
-export default function ReportsRouteAnalytics() {
-  const sorted = [...mockRouteAnalytics].sort((a, b) => b.transfers - a.transfers);
+export default function ReportsRouteAnalytics({ data }: Props) {
+  const sorted = [...data].sort((a, b) => b.transfers - a.transfers);
   const maxTransfers = Math.max(...sorted.map((r) => r.transfers), 1);
   const maxRevenue = Math.max(...sorted.map((r) => r.revenue), 1);
 

@@ -1,4 +1,6 @@
-import { mockVehicleUtilization } from '@/mocks/admin-reports';
+import type { VehicleUtilizationStat } from '@/services/reports';
+
+interface Props { data: VehicleUtilizationStat[] }
 
 const typeIcon: Record<string, string> = {
   'Van Premium':    'ri-car-line',
@@ -40,7 +42,7 @@ function UtilizationBar({ pct, occPct }: { pct: number; occPct: number }) {
   );
 }
 
-export default function ReportsVehicleUtilization() {
+export default function ReportsVehicleUtilization({ data }: Props) {
   return (
     <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
@@ -49,16 +51,16 @@ export default function ReportsVehicleUtilization() {
           <p className="text-stone-400 text-xs mt-0.5">Taxa de uso, km e eficiência operacional</p>
         </div>
         <span className="text-xs text-[#1e3a5f] bg-navy-950/[0.06] px-2.5 py-1 rounded-full font-medium border border-navy-950/[0.1]">
-          {mockVehicleUtilization.length} veículos
+          {data.length} veículos
         </span>
       </div>
 
       {/* Summary row */}
       <div className="grid grid-cols-3 divide-x divide-stone-100 border-b border-stone-100">
         {[
-          { label: 'km total (frota)', value: mockVehicleUtilization.reduce((a, v) => a + v.km_total, 0).toLocaleString('pt-BR') },
-          { label: 'transfers realizados', value: mockVehicleUtilization.reduce((a, v) => a + v.transfers, 0).toLocaleString('pt-BR') },
-          { label: 'ocupação média', value: `${Math.round(mockVehicleUtilization.reduce((a, v) => a + v.avg_occupancy_pct, 0) / mockVehicleUtilization.length)}%` },
+          { label: 'km total (frota)', value: data.reduce((a, v) => a + v.km_total, 0).toLocaleString('pt-BR') },
+          { label: 'transfers realizados', value: data.reduce((a, v) => a + v.transfers, 0).toLocaleString('pt-BR') },
+          { label: 'ocupação média', value: `${Math.round(data.reduce((a, v) => a + v.avg_occupancy_pct, 0) / data.length)}%` },
         ].map((s) => (
           <div key={s.label} className="px-4 py-3 text-center">
             <p className="font-serif text-lg font-semibold text-stone-800">{s.value}</p>
@@ -68,7 +70,7 @@ export default function ReportsVehicleUtilization() {
       </div>
 
       <div className="divide-y divide-stone-100">
-        {mockVehicleUtilization.map((v) => {
+        {data.map((v) => {
           const mc = maintenanceConfig[v.maintenance_status];
           const icon = typeIcon[v.type] ?? 'ri-car-line';
 

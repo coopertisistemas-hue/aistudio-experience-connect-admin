@@ -1,4 +1,6 @@
-import { mockExecutiveSummary } from '@/mocks/admin-reports';
+import type { ExecutiveSummary } from '@/services/reports';
+
+interface Props { data: ExecutiveSummary }
 
 interface SummaryCard {
   label: string;
@@ -18,8 +20,8 @@ function formatCurrency(n: number) {
   return `R$ ${n.toLocaleString('pt-BR')}`;
 }
 
-export default function ReportsExecutiveSummary() {
-  const s = mockExecutiveSummary;
+export default function ReportsExecutiveSummary({ data }: Props) {
+  const s = data;
 
   const cards: SummaryCard[] = [
     {

@@ -1,4 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  useExecutiveSummary,
+  useDailyStats,
+  useRouteAnalytics,
+  useDriverPerformance,
+  useVehicleUtilization,
+  useRevenueByCategory,
+  useMonthlyRevenue,
+  useHourlyPeaks,
+} from '@/hooks/useReports';
 import type { ReportPeriod } from './components/ReportsFiltersBar';
 import ReportsExecutiveSummary from './components/ReportsExecutiveSummary';
 import ReportsFiltersBar from './components/ReportsFiltersBar';
@@ -28,10 +39,7 @@ const periodLabels: Record<ReportPeriod, string> = {
   custom:  'período personalizado',
 };
 
-interface Toast {
-  id: number;
-  message: string;
-}
+interface Toast { id: number; message: string }
 
 function LoadingSkeleton() {
   return (
@@ -49,16 +57,22 @@ function LoadingSkeleton() {
 }
 
 export default function ReportsPage() {
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+
+  const { data: summary, isLoading: summaryLoading } = useExecutiveSummary(tenantId);
+  const { data: dailyStats } = useDailyStats(tenantId);
+  const { data: routeAnalytics } = useRouteAnalytics(tenantId);
+  const { data: driverPerformance } = useDriverPerformance(tenantId);
+  const { data: vehicleUtilization } = useVehicleUtilization(tenantId);
+  const { data: revenueByCategory } = useRevenueByCategory(tenantId);
+  const { data: monthlyRevenue } = useMonthlyRevenue(tenantId);
+  const { data: hourlyPeaks } = useHourlyPeaks(tenantId);
+
   const [period, setPeriod] = useState<ReportPeriod>('month');
   const [section, setSection] = useState<ReportSection>('all');
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [counter, setCounter] = useState(0);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
 
   const addToast = (msg: string) => {
     const id = counter + 1;
@@ -78,7 +92,7 @@ export default function ReportsPage() {
 
   const show = (s: ReportSection) => section === 'all' || section === s;
 
-  if (loading) {
+  if (summaryLoading) {
     return <div className="p-6 lg:p-8"><LoadingSkeleton /></div>;
   }
 
@@ -127,38 +141,36 @@ export default function ReportsPage() {
       <ReportsFiltersBar period={period} onPeriodChange={setPeriod} onExport={handleExport} />
 
       {/* Executive KPIs — always visible */}
-      <ReportsExecutiveSummary />
+      {summary && <ReportsExecutiveSummary data={summary} />}
 
       {/* Transfer Volume */}
-      {show('transfers') && (
-        <ReportsTransferVolume />
+      {show('transfers') && dailyStats && (
+        <ReportsTransferVolume
+          dailyStats={dailyStats}
+          hourlyPeaks={hourlyPeaks ?? []}
+          routeAnalytics={routeAnalytics ?? []}
+        />
       )}
 
       {/* Two-column: Driver + Vehicle */}
       {(show('drivers') || show('vehicles')) && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {show('drivers') && <ReportsDriverPerformance />}
-          {show('vehicles') && <ReportsVehicleUtilization />}
+          {show('drivers') && driverPerformance && <ReportsDriverPerformance data={driverPerformance} />}
+          {show('vehicles') && vehicleUtilization && <ReportsVehicleUtilization data={vehicleUtilization} />}
         </div>
       )}
 
       {/* Two-column: Routes + Revenue */}
       {(show('routes') || show('revenue')) && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {show('routes') && <ReportsRouteAnalytics />}
-          {show('revenue') && <ReportsRevenueSummary />}
-        </div>
-      )}
-
-      {/* Empty for specific section with no data edge case */}
-      {section !== 'all' &&
-        !['transfers','drivers','vehicles','routes','revenue'].includes(section) && (
-        <div className="bg-white rounded-xl border border-stone-200 flex flex-col items-center justify-center py-20 gap-3">
-          <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-stone-100">
-            <i className="ri-bar-chart-2-line text-2xl text-stone-400"></i>
-          </div>
-          <p className="text-stone-500 font-medium text-sm">Sem dados para este relatório</p>
-          <p className="text-stone-400 text-xs">Ajuste o período ou os filtros e tente novamente</p>
+          {show('routes') && routeAnalytics && <ReportsRouteAnalytics data={routeAnalytics} />}
+          {show('revenue') && revenueByCategory && monthlyRevenue && summary && (
+            <ReportsRevenueSummary
+              revenueByCategory={revenueByCategory}
+              monthlyRevenue={monthlyRevenue}
+              summary={summary}
+            />
+          )}
         </div>
       )}
 

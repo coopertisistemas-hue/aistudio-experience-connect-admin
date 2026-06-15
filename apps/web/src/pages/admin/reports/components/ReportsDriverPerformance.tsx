@@ -1,4 +1,6 @@
-import { mockDriverPerformance } from '@/mocks/admin-reports';
+import type { DriverPerformanceStat } from '@/services/reports';
+
+interface Props { data: DriverPerformanceStat[] }
 
 function StarRating({ rating }: { rating: number }) {
   const rounded = Math.round(rating);
@@ -39,8 +41,8 @@ function getPunctualityColor(pct: number) {
   return '#d97706';
 }
 
-export default function ReportsDriverPerformance() {
-  const sorted = [...mockDriverPerformance].sort((a, b) => a.rank - b.rank);
+export default function ReportsDriverPerformance({ data }: Props) {
+  const sorted = [...data].sort((a, b) => a.rank - b.rank);
 
   return (
     <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
@@ -50,7 +52,7 @@ export default function ReportsDriverPerformance() {
           <p className="text-stone-400 text-xs mt-0.5">Ranking operacional · período atual</p>
         </div>
         <span className="text-xs text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full font-medium border border-teal-200">
-          {mockDriverPerformance.length} motoristas
+          {data.length} motoristas
         </span>
       </div>
 
