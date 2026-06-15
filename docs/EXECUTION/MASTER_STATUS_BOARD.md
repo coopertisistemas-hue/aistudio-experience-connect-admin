@@ -72,7 +72,7 @@ Nenhuma — todos os sprints completos e commitados.
 
 | # | Item | Bloqueio |
 |---|------|----------|
-| 1 | 6 modulos ainda consomem mocks nas paginas (bypassam hooks) | Transfers, Checkins, Experiences, Notifications, Availability, Receivables — ver MOCK_INVENTORY.md |
+| 1 | Modulo Search ainda consome 7 mocks (depende de todos os outros modulos live primeiro) | Bloqueio em cadeia |
 
 ---
 
@@ -216,7 +216,7 @@ Nenhuma — todos os sprints completos e commitados.
 |------|---------|-----------|-------------|-----------|------------|
 | Wave 0 | 5 | 4 | 0 | 0 | 1 |
 | Wave 1 | 3 | 3 | 0 | 0 | 0 |
-| Wave 2 | 5 | 5 | 0 | 0 | 0 |
+| Wave 2 | 5+5 | 6 | 0 | 0 | 0 |
 | Wave 3 | 6 | 5 | 1 | 0 | 0 |
 | Wave 4 | 4 | 1 | 1 | 2 | 0 |
 | Wave 5 | 4+3 | 6 | 0 | 0 | 0 |
@@ -225,7 +225,7 @@ Nenhuma — todos os sprints completos e commitados.
 | Wave 8 | 5 | 0 | 1 | 4 | 0 |
 | Wave 9 | 3 | 0 | 0 | 3 | 0 |
 | Onda A/B/C | 7 | 6 | 0 | 0 | 1 |
-| **TOTAL** | **52** | **30** | **2** | **18** | **2** |
+| **TOTAL** | **62** | **41** | **1** | **18** | **2** |
 
 ---
 
