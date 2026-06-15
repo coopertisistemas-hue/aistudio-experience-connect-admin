@@ -1,15 +1,8 @@
 import { Link } from 'react-router-dom';
-import { mockExperiences, mockPartners, mockCategories } from '@/mocks/admin-experiences';
-
-const topExperiences = [...mockExperiences]
-  .filter((e) => e.status === 'active' || e.status === 'high_demand')
-  .sort((a, b) => b.bookings_this_month - a.bookings_this_month)
-  .slice(0, 5);
-
-const activePartners = mockPartners.filter((p) => p.status === 'active');
-const topCategories = [...mockCategories]
-  .filter((c) => c.visibility === 'visible')
-  .slice(0, 4);
+import { useAuth } from '@/hooks/useAuth';
+import { useRoutes } from '@/hooks/useRoutes';
+import { usePartners } from '@/hooks/usePartners';
+import { useCategories } from '@/hooks/useCategories';
 
 const STATUS_COLORS: Record<string, string> = {
   active:      'text-teal-600 bg-teal-50',
@@ -31,6 +24,22 @@ function fmt(n: number) {
 }
 
 export default function DashboardExperiencesOverview() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: routesData } = useRoutes(tenantId);
+  const { data: partnersData } = usePartners(tenantId);
+  const { data: categoriesData } = useCategories(tenantId);
+
+  const routes = (routesData as any[]) ?? [];
+  const partners = (partnersData as any[]) ?? [];
+  const categories = (categoriesData as any[]) ?? [];
+
+  const topExperiences = routes
+    .filter((e) => e.is_active !== false)
+    .slice(0, 5);
+
+  const activePartners = partners.filter((p) => p.status === 'active');
+  const topCategories = categories.filter((c) => c.is_active !== false).slice(0, 4);
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -54,12 +63,14 @@ export default function DashboardExperiencesOverview() {
         <div className="bg-white border border-stone-200 rounded-2xl p-5 col-span-1 md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <p className="text-stone-400 text-[11px] font-medium uppercase tracking-wider">Top Experiências do Mês</p>
-            <span className="text-[10px] text-stone-300">{mockExperiences.filter((e) => e.status !== 'unavailable').length} ativas</span>
+            <span className="text-[10px] text-stone-300">{routes.filter((e) => e.is_active !== false).length} ativas</span>
           </div>
           <div className="space-y-2">
             {topExperiences.map((exp, idx) => {
-              const maxBookings = topExperiences[0]?.bookings_this_month ?? 1;
-              const pct = Math.round((exp.bookings_this_month / maxBookings) * 100);
+              const sorted = [...topExperiences].sort((a, b) => (b.base_price ?? 0) - (a.base_price ?? 0));
+              const maxPrice = sorted[0]?.base_price ?? 1;
+              const pct = Math.round(((exp.base_price ?? 0) / maxPrice) * 100);
+              const expStatus = exp.is_active ? 'active' : 'unavailable';
               return (
                 <div key={exp.id} className="group">
                   <div className="flex items-center gap-3 py-2 px-2.5 rounded-xl hover:bg-stone-50 transition-colors">
@@ -75,21 +86,19 @@ export default function DashboardExperiencesOverview() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-navy-800 text-xs font-medium truncate">{exp.name}</span>
-                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_COLORS[exp.status] ?? 'text-stone-400 bg-stone-100'}`}>
-                          {STATUS_LABELS[exp.status] ?? exp.status}
+                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${STATUS_COLORS[expStatus]}`}>
+                          {STATUS_LABELS[expStatus]}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1 bg-stone-100 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              exp.status === 'high_demand' ? 'bg-red-400' : 'bg-teal-400'
-                            }`}
+                            className="h-full rounded-full transition-all duration-500 bg-teal-400"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
                         <span className="text-[10px] text-stone-400 whitespace-nowrap">
-                          {exp.bookings_this_month} reservas
+                          {exp.duration_min ? `${exp.duration_min}min` : '—'}
                         </span>
                       </div>
                     </div>
@@ -116,7 +125,7 @@ export default function DashboardExperiencesOverview() {
             </div>
             <div className="flex items-end gap-3 mb-3">
               <span className="text-navy-900 text-3xl font-semibold">{activePartners.length}</span>
-              <span className="text-stone-400 text-xs pb-1">de {mockPartners.length} total</span>
+              <span className="text-stone-400 text-xs pb-1">de {partners.length} total</span>
             </div>
             <div className="space-y-1.5">
               {activePartners.slice(0, 3).map((p) => (

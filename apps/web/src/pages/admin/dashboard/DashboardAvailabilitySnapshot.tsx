@@ -1,45 +1,40 @@
 import { Link } from 'react-router-dom';
-import { mockDrivers } from '@/mocks/admin-drivers';
-import { mockVehicles } from '@/mocks/admin-vehicles';
-
-const availableDrivers = mockDrivers.filter((d) => d.status === 'available');
-const onTripDrivers = mockDrivers.filter((d) => d.status === 'on_trip');
-const pausedDrivers = mockDrivers.filter((d) => d.status === 'paused' || d.status === 'unavailable');
-
-const availableVehicles = mockVehicles.filter((v) => v.status === 'available');
-const inOperationVehicles = mockVehicles.filter((v) => v.status === 'in_operation');
-const maintenanceVehicles = mockVehicles.filter((v) => v.status === 'maintenance' || v.status === 'inactive');
-
-const operationalConflicts = [
-  ...mockVehicles.filter((v) => v.maintenance_status === 'overdue' || v.maintenance_status === 'in_maintenance'),
-  ...mockVehicles.filter((v) => v.status === 'attention'),
-].filter((v, i, arr) => arr.findIndex((x) => x.id === v.id) === i);
-
-const driverConflicts = mockDrivers.filter((d) => d.status === 'pending');
-
-type ConflictItem = {
-  id: string;
-  label: string;
-  detail: string;
-  severity: 'warning' | 'error';
-};
-
-const conflicts: ConflictItem[] = [
-  ...operationalConflicts.map((v) => ({
-    id: v.id,
-    label: `${v.make} ${v.model}`,
-    detail: v.maintenance_notes?.slice(0, 48) ?? 'Atenção operacional',
-    severity: 'error' as const,
-  })),
-  ...driverConflicts.map((d) => ({
-    id: d.id,
-    label: d.full_name,
-    detail: 'Cadastro pendente — sem acesso ao app',
-    severity: 'warning' as const,
-  })),
-];
+import { useDrivers } from '@/hooks/useDrivers';
+import { useVehicles } from '@/hooks/useVehicles';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardAvailabilitySnapshot() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data: driversData } = useDrivers(tenantId);
+  const { data: vehiclesData } = useVehicles(tenantId);
+
+  const drivers = (driversData as any[]) ?? [];
+  const vehicles = (vehiclesData as any[]) ?? [];
+
+  const availableDrivers = drivers.filter((d) => d.status === 'active' || d.status === 'available');
+  const onTripDrivers = drivers.filter((d) => d.status === 'on_trip');
+  const pausedDrivers = drivers.filter((d) => d.status === 'inactive' || d.status === 'off_duty' || d.status === 'unavailable');
+
+  const availableVehicles = vehicles.filter((v) => v.status === 'available');
+  const inOperationVehicles = vehicles.filter((v) => v.status === 'on_trip' || v.status === 'in_use');
+  const maintenanceVehicles = vehicles.filter((v) => v.status === 'maintenance' || v.status === 'inactive');
+
+  const vehicleAlerts = vehicles.filter((v) => v.status === 'maintenance').map((v) => ({
+    id: v.id,
+    label: `${v.name ?? v.model ?? 'Veículo'}`,
+    detail: 'Em manutenção',
+    severity: 'error' as const,
+  }));
+  const driverAlerts = drivers.filter((d) => d.status === 'inactive').map((d) => ({
+    id: d.id,
+    label: d.full_name ?? d.name ?? d.email ?? 'Motorista',
+    detail: 'Inativo — sem acesso ao app',
+    severity: 'warning' as const,
+  }));
+
+  type ConflictItem = { id: string; label: string; detail: string; severity: 'warning' | 'error' };
+  const conflicts: ConflictItem[] = [...vehicleAlerts, ...driverAlerts];
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -64,7 +59,7 @@ export default function DashboardAvailabilitySnapshot() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-stone-400 text-[11px] font-medium uppercase tracking-wider mb-1">Motoristas</p>
-              <p className="text-navy-900 text-2xl font-semibold">{mockDrivers.length}</p>
+              <p className="text-navy-900 text-2xl font-semibold">{drivers.length}</p>
               <p className="text-stone-400 text-xs mt-1">Total cadastrados</p>
             </div>
             <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-teal-50 border border-teal-100">
@@ -100,13 +95,13 @@ export default function DashboardAvailabilitySnapshot() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] text-stone-400">Utilização hoje</span>
                 <span className="text-[10px] font-medium text-navy-600">
-                  {Math.round((onTripDrivers.length / mockDrivers.length) * 100)}%
+                  {drivers.length > 0 ? Math.round((onTripDrivers.length / drivers.length) * 100) : 0}%
                 </span>
               </div>
               <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-400 rounded-full transition-all duration-500"
-                  style={{ width: `${(onTripDrivers.length / mockDrivers.length) * 100}%` }}
+                  style={{ width: `${drivers.length > 0 ? (onTripDrivers.length / drivers.length) * 100 : 0}%` }}
                 />
               </div>
             </div>
@@ -118,7 +113,7 @@ export default function DashboardAvailabilitySnapshot() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-stone-400 text-[11px] font-medium uppercase tracking-wider mb-1">Veículos</p>
-              <p className="text-navy-900 text-2xl font-semibold">{mockVehicles.length}</p>
+              <p className="text-navy-900 text-2xl font-semibold">{vehicles.length}</p>
               <p className="text-stone-400 text-xs mt-1">Total na frota</p>
             </div>
             <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 border border-sky-100">
@@ -154,13 +149,13 @@ export default function DashboardAvailabilitySnapshot() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] text-stone-400">Utilização hoje</span>
                 <span className="text-[10px] font-medium text-navy-600">
-                  {Math.round((inOperationVehicles.length / mockVehicles.length) * 100)}%
+                  {vehicles.length > 0 ? Math.round((inOperationVehicles.length / vehicles.length) * 100) : 0}%
                 </span>
               </div>
               <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-sky-400 rounded-full transition-all duration-500"
-                  style={{ width: `${(inOperationVehicles.length / mockVehicles.length) * 100}%` }}
+                  style={{ width: `${vehicles.length > 0 ? (inOperationVehicles.length / vehicles.length) * 100 : 0}%` }}
                 />
               </div>
             </div>
