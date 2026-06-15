@@ -146,6 +146,25 @@ export default async (req: Request): Promise<Response> => {
 
       if (confirmError) {
         console.error('confirm_booking_from_payment RPC error:', confirmError);
+      } else {
+        // Dispara notificacao (email + in-app) em background
+        (async () => {
+          try {
+            await fetch(`${supabaseUrl}/functions/v1/send-notification`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                booking_id: paymentRow.booking_id,
+                type: 'booking_confirmed',
+              }),
+            });
+          } catch (notifErr) {
+            console.error('[send-notification] Background call failed:', notifErr);
+          }
+        })();
       }
     }
 
