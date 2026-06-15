@@ -135,10 +135,10 @@ Orchestrator → Executor → Versioner → Auditor
 Onde:
 
 Orchestrator = DeepSeek V4 Pro
-Executor = Kimi K2.6
+Executor = Kimi K2.7
 Versioner = GLM 5.1
-Auditor = Qwen 3.7 Max
-Premium Auditor = Codex
+Auditor = Codex
+Premium Auditor = Claude
 
 ---
 

@@ -1,8 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, Clock, Navigation, CheckCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useDriverAuth } from '@/providers/use-driver-auth';
+import { IncidentForm } from '@/components/IncidentForm';
 
 interface Passenger {
   id: string;
@@ -27,6 +29,7 @@ export function TripDetail() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const { user } = useDriverAuth();
   const queryClient = useQueryClient();
+  const [showIncident, setShowIncident] = useState(false);
 
   const { data: trip, isLoading, error } = useQuery({
     queryKey: ['trip', bookingId],
@@ -218,6 +221,16 @@ export function TripDetail() {
           </div>
         )}
 
+        {!isCompleted && (
+          <button
+            onClick={() => setShowIncident(true)}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/10"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Registrar ocorrencia
+          </button>
+        )}
+
         {isCompleted && (
           <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
             <CheckCircle className="mx-auto h-8 w-8 text-emerald-400" />
@@ -226,6 +239,13 @@ export function TripDetail() {
           </div>
         )}
       </main>
+
+      {showIncident && (
+        <IncidentForm
+          bookingId={bookingId as string}
+          onClose={() => setShowIncident(false)}
+        />
+      )}
     </div>
   );
 }

@@ -53,10 +53,10 @@
 | Agent | Role | Certified | Notes |
 |-------|------|-----------|-------|
 | DeepSeek | Orchestrator | ✅ YES | Onda A concluída; Onda B aprovada |
-| Kimi | Factory Floor Lead / Execution | ✅ YES | Atribuído: Onda C + Driver D2-D4, D7 |
-| Claude | Security & Architecture Auditor | ✅ YES | Audit request: Consolidation Exec Plan V1 |
+| Kimi | Factory Floor Lead / Execution | ✅ YES | Kimi K2.7 — Atribuído: Onda C + Driver |
+| Codex | Execution + Sprint Auditor | ✅ YES | Atribuído: sprint audit |
+| Claude | Premium Auditor | ✅ YES | Atribuído: auditoria premium de fechamento |
 | Gemini | Git & Governance Auditor | ✅ YES | Atribuído: commit e versionamento |
-| Codex | Execution + Premium Auditor | ✅ YES | Atribuído: auditoria premium Onda A/B/C + Driver D1-D4 |
 | Minimax | Independent Validator | ✅ YES | Suporte cross-audit |
 
 ---

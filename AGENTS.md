@@ -18,17 +18,18 @@
 | Agent | Role | Scope |
 |-------|------|-------|
 | **DeepSeek** | Orchestrator | Sprint planning, governance, context setup |
-| **Kimi** | Primary Executor | Code changes, documentation, refactoring |
-| **Codex** | Execution + Premium Auditor | Code review, SQL migrations, RLS changes, sprint validation, audit layer |
-| **Claude** | Security Auditor | Architecture audit, security review |
+| **Kimi** | Primary Executor | Code changes, documentation, refactoring — Kimi K2.7 |
+| **Codex** | Execution + Sprint Auditor | Code review, SQL migrations, RLS changes, sprint audit |
+| **Claude** | Premium Auditor | Architecture audit, security review, premium sprint closure audit |
 | **Gemini** | Governance Auditor | Git audit, governance compliance |
 | **Minimax** | Independent Validator | Sprint validation support, cross-audit verification |
 
 ## Operating Standard
 
 - **DeepSeek** prepara contexto e prompt completo.
-- **Kimi** executa com `kimi -y -p "prompt detalhado"`.
-- **Codex** audita com `codex review` antes do commit. Premium auditor para fechamento de sprint.
+- **Kimi** executa com `kimi -y -p "prompt detalhado"` (Kimi K2.7).
+- **Codex** audita com `codex review` antes do commit. Auditor de sprint.
+- **Claude** auditoria premium para fechamento de sprint e segurança.
 - Gates obrigatórios: `pnpm typecheck` → `pnpm lint` → `pnpm build`.
 - Commits em português (conventional commits).
 - Texto de UI em português.
