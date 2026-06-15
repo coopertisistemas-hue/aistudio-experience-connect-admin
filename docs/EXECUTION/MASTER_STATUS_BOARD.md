@@ -1,263 +1,242 @@
 # MASTER STATUS BOARD — Experience Connect Admin
 
-**Versao:** 1.0  
+**Versao:** 2.0  
 **Data:** 2026-06-15  
-**Sprint atual:** Consolidation Exec Plan V1 (Onda A/B/C + Driver D1-D4)  
-**Auditoria Premium:** Claude (fechamento de sprint)  
+**Sprint:** Consolidation Exec Plan V1 — CONCLUIDO  
+**Auditoria Premium:** Claude (fechamento)  
+**Total commits:** 12 | **Repositorio:** clean  
 
 ---
 
 ## Legenda
 
-| Símbolo | Significado |
+| Simbolo | Significado |
 |---------|-------------|
-| ✅ | COMPLETO — gates passaram, commit realizado |
-| 🔄 | EM PROGRESSO — parcialmente implementado |
-| ⬜ | PENDENTE — nao iniciado |
-| ⚠️ | BLOQUEADO — depende de fator externo |
-| ❌ | CANCELADO — nao se aplica mais |
+| ✅ | COMPLETO — gates passaram, commit + deploy |
+| 🔄 | EM PROGRESSO |
+| ⬜ | PENDENTE |
+| 🚀 | DEPLOYADO |
+
+---
+
+## Deploy (Vercel + Supabase Cloud)
+
+| App | URL | Status |
+|-----|-----|--------|
+| Web (admin) | https://aistudio-experience-connect-admin.vercel.app | 🚀 HTTP 200 |
+| Landing (B2C) | https://experience-connect-landing.vercel.app | 🚀 HTTP 200 |
+| Driver (PWA) | https://experience-connect-driver.vercel.app | 🚀 HTTP 200 |
+| Supabase | https://zlfuliqhacbcbkjskhpj.supabase.co | ✅ RLS ativo |
+
+## Gates
+
+| Gate | Resultado |
+|------|-----------|
+| typecheck | ✅ 0 errors — 6 packages |
+| lint | ✅ 0 errors, 0 warnings |
+| build | ✅ 3 apps |
+| PW E2E | ✅ 21/21 + 5 driver specs |
 
 ---
 
 ## Wave 0 — Governance, Inventory & Baseline
 
-**Objetivo:** Baseline solido, debitos criticos corrigidos.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 0.1.1 — Commit Governance Docs | Gemini + Codex | ✅ |
+| 0.1.2 — RLS Baseline (49/49) | Codex | ✅ |
+| 0.2.1 — Lint Cleanup | Kimi | ✅ |
+| S0.1 — Governance Inventory | Claude/Kimi | ✅ |
+| S0.2 — Foundation Repairs | Kimi | ✅ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 0.1.1 | Commit Governance Docs & Fix Critical Deps | Gemini + Codex | ✅ COMPLETO | — |
-| 0.1.2 | Verify update_updated_at_column & RLS Baseline | Codex | ✅ COMPLETO | RLS verificado via REST API — bookings/tenants/users bloqueados para anon
-| 0.2.1 | Lint S3 Cleanup (Lint & Type Hardening) | Kimi | ✅ COMPLETO | — |
-| S0.1 | Governance Inventory Normalization | Claude / Kimi | ✅ COMPLETO | — |
-| S0.2 | Foundation Repairs | Kimi | ✅ COMPLETO | — |
-
-### Pendências Wave 0
-
-Nenhuma — todos os sprints completos e verificados.
+**Wave 0: 5/5 completos ✅**
 
 ---
 
-## Wave 1 — Core Platform Stabilization
+## Wave 1 — Core Platform (Auth + Tenant)
 
-**Objetivo:** Auth multi-tenant, rotas protegidas, live data foundation.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 1.1.1 — Tenant Resolution & Role Guards | Kimi | ✅ |
+| 1.1.2 — OTP Login & Invite Flow | Codex | ✅ |
+| 1.2.1 — React Query Setup & Data Layer | Kimi | ✅ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 1.1.1 | Tenant Resolution & Role Guards | Kimi | ✅ COMPLETO | Commit `a8de7bb` |
-| 1.1.2 | OTP Login & Invite Flow | Codex | ✅ COMPLETO | Commit `91e0120` |
-| 1.2.1 | React Query Setup & Data Layer | Kimi | ✅ COMPLETO | Commit `481dafa`, hooks + servicos 100% live |
-
-### Pendências Wave 1
-
-Nenhuma — todos os sprints completos e commitados.
+**Wave 1: 3/3 completos ✅**
 
 ---
 
 ## Wave 2 — Admin Business Modules
 
-**Objetivo:** Todos os modulos admin conectados ao backend real.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 2.1.1 — Bookings & Reservations Live | Kimi + Codex | ✅ |
+| 2.1.2 — Routes, Vehicles, Drivers Live | Kimi | ✅ |
+| 2.1.3 — Agenda VAN Live | Kimi + Codex | ✅ |
+| 2.1.4 — Customers, Partners, Categories Live | Kimi | ✅ |
+| 2.1.5 — Settings & User Management Live | Kimi | ✅ |
+| Mock → Hooks (Transfers) | DeepSeek | ✅ |
+| Mock → Hooks (Checkins) | DeepSeek | ✅ |
+| Mock → Hooks (Experiences) | DeepSeek | ✅ |
+| Mock → Hooks (Notifications) | DeepSeek | ✅ |
+| Mock → Hooks (Availability) | DeepSeek | ✅ |
+| Mock → Hooks (Receivables) | DeepSeek | ✅ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 2.1.1 | Bookings & Reservations Live | Kimi + Codex | ✅ COMPLETO | commit via S2.1.x |
-| 2.1.2 | Routes, Vehicles, Drivers Live | Kimi | ✅ COMPLETO | Commit `e39fa4e` |
-| 2.1.3 | Agenda VAN Live | Kimi + Codex | ✅ COMPLETO | Commit `ccdb8e1` |
-| 2.1.4 | Customers, Partners, Categories Live | Kimi | ✅ COMPLETO | Commit `43be7dc` |
-| 2.1.5 | Settings & User Management Live | Kimi | ✅ COMPLETO | Commit `1dd3033` |
-
-### Pendências Wave 2
-
-| # | Item | Bloqueio |
-|---|------|----------|
-| 1 | Modulo Search ainda consome 7 mocks (depende de todos os outros modulos live primeiro) | Bloqueio em cadeia |
+**Wave 2: 10/10 completos ✅** | Pendencia: Search (7 mocks, depende de todos os modulos live)
 
 ---
 
 ## Wave 3 — Public Site & Booking Funnel
 
-**Objetivo:** Site publico funcional com catalogo, SEO e booking funnel.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 3.1.1 — Decisao Arquitetura (DA-01) | Claude | ✅ |
+| 3.1.2 — Site Publico: Shell, Catalogo, SEO | Kimi + Codex | ✅ |
+| 3.1.3 — Pagina Individual de Roteiro | Kimi + Codex | ✅ |
+| 3.1.4 — Landing Reserva Flow | Kimi | ✅ |
+| 3.1.5 — Formulario de Contato | Kimi | ✅ |
+| 3.2.1 — Guest Booking Flow (Fluxo A) | Kimi + Codex | 🔄 MP checkout pendente |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 3.1.1 | Decisao de Arquitetura do Site Publico | Claude | ✅ COMPLETO | DA-01 resolvido — landing mantido separado |
-| 3.1.2 | Site Publico: Shell, Catalogo, SEO | Kimi + Codex | ✅ COMPLETO | Commit `c2ed14b` |
-| 3.1.3 | Pagina Individual de Roteiro | Kimi + Codex | ✅ COMPLETO | Commit `ed9db78` |
-| 3.1.4 | Landing Reserva Flow | Kimi | ✅ COMPLETO | Commit `dcdc4d4` |
-| 3.1.5 | Formulario de Contato | Kimi | ✅ COMPLETO | Commit `2e181b8` |
-| 3.2.1 | Guest Booking Flow (Fluxo A — Online) | Kimi + Codex + Claude | 🔄 EM PROGRESSO | Booking wizard implementado; MP checkout pendente (Wave 4) |
-
-### Pendências Wave 3
-
-| # | Item | Bloqueio |
-|---|------|----------|
-| 1 | MP checkout real no booking flow | Depende de Wave 4 (MP SDK + credenciais) |
+**Wave 3: 5/6 completos 🟢**
 
 ---
 
-## Wave 4 — Partner/Client Site Integration & Payments
+## Wave 4 — Partner Integration & Payments
 
-**Objetivo:** Pagamentos Mercado Pago completos + landing de parceiro.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 4.1.1 — create-payment-preference Edge Function | Codex + Claude | ✅ |
+| 4.1.2 — MP SDK Frontend & Checkout UI | Kimi | 🔄 Redirect via init_point funcional |
+| 4.2.1 — partner_integrations Table & Config | Codex + Claude | ⬜ |
+| 4.2.2 — Landing Page de Parceiro | Kimi | ⬜ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 4.1.1 | create-payment-preference Edge Function | Codex + Claude | ✅ COMPLETO | Edge Function criada (`supabase/functions/create-payment-preference/index.ts`) |
-| 4.1.2 | MP SDK Frontend & Checkout UI | Kimi | 🔄 EM PROGRESSO | create-payment-preference existe; integracao SDK frontend pendente |
-| 4.2.1 | partner_integrations Table & Config | Codex + Claude | ⬜ PENDENTE | — |
-| 4.2.2 | Landing Page de Parceiro | Kimi | ⬜ PENDENTE | Depende de 4.2.1 + 3.2.1 |
-
-### Pendências Wave 4
-
-| # | Item | Bloqueio |
-|---|------|----------|
-| 1 | MP SDK integracao frontend | Falta `@mercadopago/sdk-js` instalacao + config |
-| 2 | MP sandbox E2E test | Falta credenciais MP sandbox |
-| 3 | partner_integrations migration + UI | Nao iniciado |
+**Wave 4: 1/4 🟡** | Bloqueio: credenciais Mercado Pago
 
 ---
 
-## Wave 5 — Driver App
+## Wave 5 — Driver App (PWA)
 
-**Objetivo:** PWA do motorista funcional em apps/driver.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 5.1.1 — apps/driver Setup (PWA) | Codex | ✅ |
+| 5.1.2 — Driver Auth & Agenda | Kimi | ✅ |
+| 5.1.3 — Trip Management & Check-in | Kimi + Codex | ✅ |
+| 5.1.4 — PWA Offline Cache | Codex | ✅ |
+| D5 — IncidentForm | Codex | ✅ |
+| D6 — Offline Sync Queue | Codex | ✅ |
+| D7 — E2E Driver Tests | Kimi | ✅ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 5.1.1 | apps/driver Setup (PWA) | Codex | ✅ COMPLETO | Commit `c168c5b` — D1: Vite+PWA, 421KB build |
-| 5.1.2 | Driver Auth & Agenda | Kimi | ✅ COMPLETO | D2/D3: Login OTP + Agenda diaria |
-| 5.1.3 | Trip Management & Check-in | Kimi + Codex | ✅ COMPLETO | D4: check-in/out, passageiros, Google Maps |
-| 5.1.4 | PWA Offline Cache | Codex | ✅ COMPLETO | useOfflineSync hook implementado (D6) |
-| D5 | IncidentForm | Codex | ✅ COMPLETO | Registro de ocorrencia + upload foto Storage |
-| D6 | Offline Sync Queue | Codex | ✅ COMPLETO | Hook useOfflineSync com localStorage queue |
-| D7 | Playwright E2E Driver | Kimi | ✅ COMPLETO | 5 testes smoke (login, auth guard, 404, estrutura) |
-
-### Pendências Wave 5
-
-| # | Sprint | Descricao |
-|---|--------|-----------|
-| 1 | D5 | IncidentForm (registro de ocorrencia + upload foto Supabase Storage) |
-| 2 | D6 | PWA offline sync queue (acoes offline → replay ao reconectar) |
-| 3 | D7 | Playwright E2E tests para fluxo do motorista |
+**Wave 5: 7/7 completos ✅**
 
 ---
 
-## Wave 6 — Payments Hardening, WhatsApp & Notifications
+## Wave 6 — WhatsApp & Notifications
 
-**Objetivo:** Refund, reconciliacao, WhatsApp CTA, emails transacionais.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 6.1.1 — Refund & Reconciliation | Codex + Claude | ⬜ |
+| 6.2.1 — WhatsApp CTA Configuravel | Kimi | ⬜ |
+| 6.3.1 — Email Transacional | Codex | ⬜ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 6.1.1 | Refund & Reconciliation | Codex + Claude | ⬜ PENDENTE | Depende de Wave 4 |
-| 6.2.1 | WhatsApp CTA Configuravel | Kimi | ⬜ PENDENTE | Depende de Wave 3 + 4 |
-| 6.3.1 | Email Transacional | Codex | ⬜ PENDENTE | Depende de Wave 4 |
+**Wave 6: 0/3 ⬜**
 
 ---
 
 ## Wave 7 — Analytics, Finance & Reporting
 
-**Objetivo:** Dashboards com dados reais, relatorios exportaveis.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 7.1.1 — Reports & Dashboard Live | Kimi | ⬜ |
+| 7.1.2 — Receivables & Financial Live | Kimi | ⬜ |
+| 7.1.3 — Partner Commissions | Kimi + Codex | ⬜ |
+| 7.1.4 — CRM / Leads | Kimi | ⬜ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 7.1.1 | Reports & Dashboard Live | Kimi | ⬜ PENDENTE | — |
-| 7.1.2 | Receivables & Financial Module Live | Kimi | ⬜ PENDENTE | — |
-| 7.1.3 | Partner Commissions | Kimi + Codex | ⬜ PENDENTE | — |
-| 7.1.4 | CRM / Leads (Basico) | Kimi | ⬜ PENDENTE | — |
+**Wave 7: 0/4 ⬜**
 
 ---
 
-## Wave 8 — Hardening, QA & Production Readiness
+## Wave 8 — Hardening, QA & Production
 
-**Objetivo:** Seguranca, testes completos, observabilidade, deploy.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 8.1.1 — Playwright E2E Suite Completa | Codex | 🔄 26 specs existentes |
+| 8.1.2 — Security Audit (Claude) | Claude | ⬜ |
+| 8.1.3 — Observability (Sentry) | Codex | ⬜ |
+| 8.1.4 — Performance Optimization | Codex | ⬜ |
+| 8.1.5 — Production Deploy | Gemini + Claude | 🚀 3 apps deployed |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 8.1.1 | Playwright E2E Suite Completa | Codex | 🔄 EM PROGRESSO | 21 specs existentes; faltam fluxos driver + payments |
-| 8.1.2 | Security Audit | Claude | ⬜ PENDENTE | — |
-| 8.1.3 | Observability Setup (Sentry) | Codex | ⬜ PENDENTE | — |
-| 8.1.4 | Performance Optimization | Codex | ⬜ PENDENTE | — |
-| 8.1.5 | Production Deploy | Gemini + Claude | ⬜ PENDENTE | Credenciais Vercel + Supabase prod |
+**Wave 8: 1/5 🟡**
 
 ---
 
 ## Wave 9 — Launch & Post-Launch
 
-**Objetivo:** Go-live controlado, monitoramento, roadmap pos-MVP.
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| 9.1.1 — Go-Live Checklist | ChatGPT + Alexandre | ⬜ |
+| 9.1.2 — Post-Launch Monitoring | DeepSeek + Codex | ⬜ |
+| 9.1.3 — Roadmap Pos-MVP | ChatGPT + Alexandre | ⬜ |
 
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| 9.1.1 | Go-Live Checklist | ChatGPT + Alexandre | ⬜ PENDENTE | — |
-| 9.1.2 | Post-Launch Monitoring & Hotfixes | DeepSeek + Codex | ⬜ PENDENTE | — |
-| 9.1.3 | Roadmap Pos-MVP | ChatGPT + Alexandre | ⬜ PENDENTE | — |
-
----
-
-## Consolidation Exec Plan (Onda A/B/C)
-
-| Sprint | Descricao | Agente | Status | Pendencia |
-|--------|-----------|--------|--------|-----------|
-| Onda A | Saneamento de Governanca (5 docs tracking) | DeepSeek | ✅ COMPLETO | Commit `fa2a280` |
-| Onda B | Decisoes Arquiteturais (DA-01/02/05) | DeepSeek + Alexandre | ✅ COMPLETO | 3 decisoes aprovadas |
-| Onda C (C1) | Gates: typecheck + lint + build | Kimi | ✅ COMPLETO | 0 errors |
-| Onda C (C2) | Playwright E2E | Kimi | ✅ COMPLETO | 21/21 passando |
-| Onda C (C3) | Mock Inventory | DeepSeek | ✅ COMPLETO | MOCK_INVENTORY.md |
-| Onda C (C4) | Hooks Coverage | DeepSeek | ✅ COMPLETO | HOOKS_COVERAGE.md |
-| Onda C (C5) | RLS Baseline (Supabase Cloud) | Codex | ✅ COMPLETO | Bookings/Tenants/Users bloqueados — RLS ativo |
-| Onda C (C6) | Operational Risks Update | DeepSeek | ✅ COMPLETO | R1/R5 resolved, R2-R4 tracking |
-| Onda C (C7) | Remover apps/admin | Kimi | ✅ COMPLETO | 13 arquivos removidos |
-| Premium Audit | Codex re-audit consolidado | Codex | 🔄 PENDENTE | — |
+**Wave 9: 0/3 ⬜**
 
 ---
 
-## Resumo por Wave
+## Onda A/B/C — Consolidation
 
-| Wave | Sprints | Completos | Em Progresso | Pendentes | Bloqueados |
-|------|---------|-----------|-------------|-----------|------------|
-| Wave 0 | 5 | 4 | 0 | 0 | 1 |
-| Wave 1 | 3 | 3 | 0 | 0 | 0 |
-| Wave 2 | 5+5 | 6 | 0 | 0 | 0 |
-| Wave 3 | 6 | 5 | 1 | 0 | 0 |
-| Wave 4 | 4 | 1 | 1 | 2 | 0 |
-| Wave 5 | 4+3 | 6 | 0 | 0 | 0 |
-| Wave 6 | 3 | 0 | 0 | 3 | 0 |
-| Wave 7 | 4 | 0 | 0 | 4 | 0 |
-| Wave 8 | 5 | 0 | 1 | 4 | 0 |
-| Wave 9 | 3 | 0 | 0 | 3 | 0 |
-| Onda A/B/C | 7 | 6 | 0 | 0 | 1 |
-| **TOTAL** | **62** | **41** | **1** | **18** | **2** |
+| Sprint | Agente | Status |
+|--------|--------|--------|
+| Onda A — Saneamento Governanca | DeepSeek | ✅ |
+| Onda B — Decisoes Arquiteturais | DeepSeek + Alexandre | ✅ |
+| C1 — Gates (typecheck/lint/build) | Kimi | ✅ |
+| C2 — Playwright E2E | Kimi | ✅ |
+| C3 — Mock Inventory | DeepSeek | ✅ |
+| C4 — Hooks Coverage | DeepSeek | ✅ |
+| C5 — RLS Baseline (Supabase Cloud) | Codex | ✅ |
+| C6 — Operational Risks Update | DeepSeek | ✅ |
+| C7 — Remover apps/admin | Kimi | ✅ |
 
----
-
-## Percentual por Fase
-
-| Fase | Progresso | Status |
-|------|-----------|--------|
-| Fase 0 — Foundation | 100% (4/5, 1 bloqueado) | ✅ |
-| Fase 1 — Core (Wave 0-1-2) | ~92% (12/13, 1 bloqueado) | 🟢 |
-| Fase 2 — Frontend (Wave 3-4-5) | ~67% (9/14, 2 em progresso) | 🟡 |
-| Fase 3 — Scale (Wave 6-7-8-9) | ~6% (1/15, 1 em progresso) | ⚪ |
+**Onda A/B/C: 9/9 completos ✅**
 
 ---
 
-## Top Bloqueios
+## RESUMO POR WAVE
 
-| # | Bloqueio | Impacto | Ondas afetadas |
-|---|----------|---------|----------------|
-| 1 | Credenciais Supabase Cloud (URL + ANON_KEY) | ALTO | Wave 0 (0.1.2), Onda C (C5), Wave 8 (8.1.5) |
-| 2 | Credenciais Mercado Pago sandbox | MEDIO | Wave 4 (4.1.1, 4.1.2), Wave 3 (3.2.1) |
-| 3 | Credenciais Vercel deploy | MEDIO | Wave 8 (8.1.5) |
+| Wave | Sprints | ✅ Completos | % |
+|------|---------|-------------|-----|
+| Wave 0 — Baseline | 5 | 5 | 100% |
+| Wave 1 — Core Auth | 3 | 3 | 100% |
+| Wave 2 — Admin Modules | 10 | 10 | 100% |
+| Wave 3 — Public Site | 6 | 5 | 83% |
+| Wave 4 — Payments | 4 | 1 | 25% |
+| Wave 5 — Driver App | 7 | 7 | 100% |
+| Wave 6 — WhatsApp/Notif | 3 | 0 | 0% |
+| Wave 7 — Analytics | 4 | 0 | 0% |
+| Wave 8 — Hardening | 5 | 1 | 20% |
+| Wave 9 — Launch | 3 | 0 | 0% |
+| Onda A/B/C | 9 | 9 | 100% |
+| **TOTAL** | **59** | **41** | **69%** |
 
 ---
 
-## Top Acoes Prioritarias
+## Bloqueios Ativos
 
-| # | Acao | Dono | Dependencia |
+| # | Bloqueio | Ondas Afetadas |
+|---|----------|----------------|
+| 1 | Credenciais Mercado Pago (sandbox/prod) | Wave 3 (3.2.1), Wave 4, Wave 6 |
+| 2 | Search global (depende de todos modulos live) | Wave 2 |
+
+---
+
+## Proximas Acoes (Prioridade)
+
+| # | Acao | Wave | Dependencia |
 |---|------|------|-------------|
-| 1 | Solicitar credenciais Supabase Cloud | Alexandre | Nenhuma |
-| 2 | Codex Premium Audit (re-audit consolidado) | Codex | Nenhuma — iniciar agora |
-| 3 | Driver D5: IncidentForm + Storage | Codex | Nenhuma |
-| 4 | Driver D6: PWA offline sync queue | Codex | D5 |
-| 5 | Criar hooks para modulos mock (Transfers P0) | Kimi | Nenhuma |
-| 6 | MP SDK frontend checkout (4.1.2) | Kimi | Credenciais MP |
+| 1 | Solicitar credenciais Mercado Pago | 3/4 | Alexandre |
+| 2 | Claude Premium Audit (fechamento sprint) | — | Nenhuma |
+| 3 | WhatsApp CTA configuravel | 6 | Nenhuma |
+| 4 | Email transacional (booking confirmation) | 6 | SMTP config |
+| 5 | Dashboards live (reports/receivables) | 7 | Nenhuma |
+| 6 | Performance optimization (Lighthouse > 90) | 8 | Nenhuma |
 
 ---
 
-*Fim do MASTER STATUS BOARD — atualizado em 2026-06-15.*
+*Board atualizado em 2026-06-15 — 12 commits, 3 apps deployed, 41/59 sprints (69%).*
