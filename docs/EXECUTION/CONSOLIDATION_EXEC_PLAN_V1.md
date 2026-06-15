@@ -322,8 +322,8 @@ apps/driver/
 |-------------|----------------|-------------------|---------|
 | Onda A (A1-A5) | DeepSeek | — | DeepSeek (self-check) |
 | Onda B (DA-01/02/05) | DeepSeek (planejamento) | Claude | Alexandre (aprovacao) |
-| Onda C (C1-C7) | Kimi K2.6 | Codex | Minimax |
-| Driver D1-D7 | Kimi + Codex | Claude (seguranca) | Minimax |
+| Onda C (C1-C7) | Kimi K2.6 | Codex | Codex (premium) |
+| Driver D1-D7 | Kimi + Codex | Claude (seguranca) | Codex (premium) |
 
 ---
 
@@ -369,28 +369,38 @@ Uma onda esta concluida quando:
 
 ---
 
-## 11. Claude Audit Request
+## 11. Codex Premium Audit Request
 
-**Para:** Claude (Security & Architecture Auditor)
-**Assunto:** Revisao do Consolidation Exec Plan V1
-**Prazo:** Antes do inicio da Onda C
+**Para:** Codex (Premium Auditor)
+**Assunto:** Auditoria Premium — Consolidation Exec Plan V1 (Onda A/B/C + Driver D1-D4)
+**Status:** CONCLUIDO — aguardando auditoria
 
-Revise este plano executivo para o repositorio `aistudio-experience-connect-admin` com foco em:
+### Escopo da Auditoria
 
-1. **Seguranca:** A abordagem de usar Supabase Cloud (em vez de Docker local) para validacao de RLS introduz algum risco? As credenciais cloud estao adequadamente isoladas?
-2. **Arquitetura:** As recomendacoes para DA-01 (manter landing separado), DA-02 (PWA driver) e DA-05 (remover apps/admin) sao arquiteturalmente solidas?
-3. **RLS/tenant isolation:** A especificacao do app do motorista (secao 5) preserva o modelo multi-tenant? A RLS policy proposta para `driver` role e suficiente?
-4. **Riscos operacionais:** Os 5 riscos do TRANSITION REPORT estao adequadamente enderecados na Onda C?
-5. **Recomendacoes:** Ha algum gap de seguranca, arquitetura ou governanca nao coberto por este plano?
+1. **Gates:** typecheck ✅ / lint ✅ / build ✅ / E2E 21/21 ✅ — validar outputs
+2. **Arquitetura:** DA-01 (landing separado), DA-02 (PWA driver), DA-05 (apps/admin removido) — validar decisoes
+3. **Seguranca:** Driver OTP (`shouldCreateUser: false`), RLS policies V2, supabase client isolation
+4. **Codigo:** apps/driver/ (23 arquivos), TripDetail `as any` workarounds (2 locais), DriverAuth context pattern
+5. **Riscos operacionais:** 5 riscos do TRANSITION REPORT — R1 ✅, R5 ✅, R2-R4 tracking
+6. **Mocks:** 6 modulos ainda mock (bypassam hooks) — documentados em MOCK_INVENTORY.md
 
-Evidencias disponiveis no repo:
-- `docs/architecture/ARCHITECTURE-V2.md` — 10 dominios operacionais, system boundaries
-- `docs/architecture/MULTI-TENANT-SECURITY.md` — modelo RLS + membership
-- `supabase/migrations/` — 14 migracoes incluindo RLS policies V2
-- `supabase/functions/` — 9 Edge Functions
-- `apps/` — 3 apps atuais (web, landing, admin-stub)
+### Evidencias
 
-Output esperado: Relatorio de auditoria com findings classificados por severidade (CRITICAL/HIGH/MEDIUM/LOW) e recomendacoes acionaveis.
+| Item | Status | Evidencia |
+|------|--------|-----------|
+| typecheck | ✅ 0 errors | 6 packages, exit 0 |
+| lint | ✅ 0 errors, 0 warnings | `--max-warnings 0`, 6 packages |
+| build | ✅ 3 apps | web 349KB / landing 374KB / driver 421KB PWA |
+| E2E Playwright | ✅ 21/21 | 9 smoke + 5 booking + 7 landing — 42.7s |
+| Commits | 3 | `fa2a280`, `c168c5b`, `0c416bf` |
+
+### Output Esperado
+
+Relatorio de auditoria premium com:
+- Findings por severidade (CRITICAL/HIGH/MEDIUM/LOW)
+- Validacao de cada gate com evidencias
+- Recomendacoes acionaveis por prioridade
+- GO / NO-GO para deploy
 
 ---
 

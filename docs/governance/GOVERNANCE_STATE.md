@@ -56,8 +56,8 @@
 | Kimi | Factory Floor Lead / Execution | ✅ YES | Atribuído: Onda C + Driver D2-D4, D7 |
 | Claude | Security & Architecture Auditor | ✅ YES | Audit request: Consolidation Exec Plan V1 |
 | Gemini | Git & Governance Auditor | ✅ YES | Atribuído: commit e versionamento |
-| Codex | Execution | ✅ YES | Atribuído: Onda C auditoria + Driver D1, D5-D6 |
-| Minimax | Independent Validator | ✅ YES | Atribuído: auditoria pós-Onda C |
+| Codex | Execution + Premium Auditor | ✅ YES | Atribuído: auditoria premium Onda A/B/C + Driver D1-D4 |
+| Minimax | Independent Validator | ✅ YES | Suporte cross-audit |
 
 ---
 
@@ -75,6 +75,6 @@
 |---|------|--------|-------|----------|
 | R1 | update_updated_at_column() validation | ✅ RESOLVED | Codex/Claude | Commit `56dea14` (OR1) |
 | R2 | Orphaned edge functions | 🔍 VERIFY | Kimi/Gemini | Pendente — Onda C |
-| R3 | Duplicated edge functions | 🔍 VERIFY | Codex/Minimax | Pendente — Onda C |
+| R3 | Duplicated edge functions | 🔍 VERIFY | Codex | Pendente — Onda C |
 | R4 | Infrastructure visibility validation | ⏳ TRACKING | Gemini/ChatGPT | Validar Vercel + Supabase configs |
 | R5 | Security migration execution | ✅ RESOLVED | Claude/Codex | Commits `56dea14`, `1dd3033` |

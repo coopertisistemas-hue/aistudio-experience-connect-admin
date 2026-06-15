@@ -138,7 +138,7 @@ Orchestrator = DeepSeek V4 Pro
 Executor = Kimi K2.6
 Versioner = GLM 5.1
 Auditor = Qwen 3.7 Max
-Premium Auditor = MiniMax M3
+Premium Auditor = Codex
 
 ---
 

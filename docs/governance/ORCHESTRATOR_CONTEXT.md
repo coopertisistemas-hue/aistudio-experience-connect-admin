@@ -87,8 +87,8 @@
 | Kimi | Available | Onda C (execução) + Driver D2-D4, D7 |
 | Claude | Available | Audit request pendente (Consolidation Exec Plan V1 review) |
 | Gemini | Available | Git audit / Governance |
-| Codex | Available | Onda C (auditoria) + Driver D1, D5-D6 |
-| Minimax | Available | Auditoria pós-Onda C |
+| Codex | Available | Premium Audit Onda A/B/C + Driver D1-D4 |
+| Minimax | Available | Suporte cross-audit |
 
 ---
 
@@ -98,6 +98,6 @@
 |------|-----------|---------|
 | Claude audit — Consolidation Exec Plan V1 | Antes da Onda C | Claude |
 | Onda C gate verification | Onda C início | Kimi |
-| Onda C closure audit | Pós-Onda C | Minimax |
+| Codex premium audit — Onda A/B/C + Driver S1 | Sessão atual | Codex |
 | Governance compliance check | Every sprint | DeepSeek self-check |
 | Bootstrap validation | Every session start | DeepSeek auto-test |

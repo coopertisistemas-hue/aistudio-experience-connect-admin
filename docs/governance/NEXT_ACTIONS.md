@@ -38,11 +38,11 @@
 
 ---
 
-### Action 4 — Minimax Audit: Pós-Onda C
+### Action 4 — Codex Premium Audit: Pós-Onda C + Driver S1
 **Priority:** P1 — VALIDATION  
-**Owner:** Minimax  
-**Descrição:** Auditoria independente de validação técnica após conclusão da Onda C.
-**Dependências:** Action 1 (Onda C concluída)
+**Owner:** Codex  
+**Descrição:** Auditoria premium de validação técnica após conclusão da Onda A/B/C + Driver D1-D4. Revisar gates, E2E, arquitetura e segurança.
+**Dependências:** Onda C + Driver D1-D4 concluídos
 **Repo:** `aistudio-experience-connect-admin`
 
 ---
@@ -77,5 +77,5 @@
 | 1 | Onda C — Consolidação Técnica | P0 | M | Onda B + Claude audit | PENDING |
 | 2 | Claude Audit — Exec Plan V1 | P0 | S | Nenhuma | PENDING |
 | 3 | Driver App PWA | P1 | L | Onda C concluída | PENDING |
-| 4 | Minimax Audit — Pós-Onda C | P1 | S | Action 1 | PENDING |
+| 4 | Codex Premium Audit | P1 | S | Onda C + D1-D4 | PENDING |
 | 5 | Commit e Versionamento | P2 | S | Onda A concluída | PENDING |
