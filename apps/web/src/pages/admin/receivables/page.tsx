@@ -157,7 +157,7 @@ export default function ReceivablesPage() {
         </button>
       </div>
 
-      {showForecast && <CashflowForecast />}
+      {showForecast && <CashflowForecast weekly={[]} monthly={[]} />}
 
       <ReceivablesFilterBar
         filters={filters}

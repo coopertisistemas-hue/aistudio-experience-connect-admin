@@ -6,6 +6,8 @@ type BookingRow = Database['public']['Tables']['bookings']['Row'];
 type PaymentRow = Database['public']['Tables']['payments']['Row'];
 type UserTenantRow = Database['public']['Tables']['user_tenants']['Row'];
 
+export type CustomerPreference = 'aeroporto' | 'hotel' | 'executivo' | 'turismo' | 'familia' | 'acessibilidade' | 'ingles' | 'espanhol' | 'bagagem_extra';
+
 export interface CustomerBooking {
   id: string;
   reference: string;

@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { mockCashflowWeekly, mockCashflowMonthly } from '@/mocks/admin-receivables';
 
+interface CashflowEntry { date: string; label: string; expected: number; received: number }
 type View = 'weekly' | 'monthly';
 
-export default function CashflowForecast() {
+interface Props { weekly: CashflowEntry[]; monthly: CashflowEntry[] }
+
+export default function CashflowForecast({ weekly, monthly }: Props) {
   const [view, setView] = useState<View>('weekly');
-  const data = view === 'weekly' ? mockCashflowWeekly : mockCashflowMonthly;
+  const data = view === 'weekly' ? weekly : monthly;
   const maxVal = Math.max(...data.map((d) => d.expected), 1);
 
   const totalExpected = data.reduce((s, d) => s + d.expected, 0);

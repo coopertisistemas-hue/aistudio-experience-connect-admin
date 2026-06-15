@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CustomerDisplay } from '@/services/customers';
-import type { CustomerPreference } from '@/mocks/admin-customers';
+import type { CustomerPreference } from '@/services/customers';
 import { preferenceLabels, preferenceIcons } from '@/mocks/admin-customers';
 
 interface CustomerDetailDrawerProps {
