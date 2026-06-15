@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { mockNotifications, SEVERITY_STYLES, SEVERITY_LABELS } from '@/mocks/admin-notifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminTopbarProps {
   sidebarCollapsed: boolean;
@@ -17,6 +17,8 @@ export default function AdminTopbar({ onSidebarToggle, onMobileMenuToggle, onSea
   const isMac = navigator.platform.toLowerCase().includes('mac');
   const cmdHint = isMac ? '⌘K' : 'Ctrl+K';
   const [notifOpen, setNotifOpen] = useState(false);
+  const { data: notifData } = useNotifications();
+  const notifications = useMemo(() => notifData?.data ?? [], [notifData]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -32,15 +34,11 @@ export default function AdminTopbar({ onSidebarToggle, onMobileMenuToggle, onSea
   const today = new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
 
   const recentNotifications = useMemo(() =>
-    mockNotifications
-      .filter((n) => !n.resolved)
-      .sort((a, b) => {
-        const order = { critical: 0, warning: 1, info: 2, success: 3 };
-        return order[a.severity] - order[b.severity];
-      })
+    notifications
+      .filter((n) => !n.is_read)
       .slice(0, 5),
-  []);
-  const unreadCount = useMemo(() => mockNotifications.filter((n) => !n.read).length, []);
+  [notifications]);
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.is_read).length, [notifications]);
 
   return (
     <header className="h-14 bg-white border-b border-stone-200 flex items-center gap-3 px-4 flex-shrink-0 z-20">
@@ -150,39 +148,26 @@ export default function AdminTopbar({ onSidebarToggle, onMobileMenuToggle, onSea
 
               {/* Notification items */}
               <div className="max-h-80 overflow-y-auto">
-                {recentNotifications.map((notif) => {
-                  const styles = SEVERITY_STYLES[notif.severity];
-                  return (
-                    <div
-                      key={notif.id}
-                      className={`flex items-start gap-3 px-4 py-3 hover:bg-stone-50 transition-colors cursor-pointer border-b border-stone-50 last:border-0 ${!notif.read ? styles.border : ''}`}
-                      onClick={() => setNotifOpen(false)}
-                    >
-                      <div className={`w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 mt-0.5
-                        ${notif.severity === 'critical' ? 'bg-red-50 border border-red-100' :
-                          notif.severity === 'warning'  ? 'bg-amber-50 border border-amber-100' :
-                          notif.severity === 'success'  ? 'bg-teal-50 border border-teal-100' :
-                          'bg-sky-50 border border-sky-100'}`}>
-                        <i className={`${notif.icon} text-xs ${styles.icon}`}></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${styles.badge}`}>
-                            {SEVERITY_LABELS[notif.severity]}
-                          </span>
-                          <span className="text-[9px] text-stone-400">{notif.category}</span>
-                        </div>
-                        <p className={`text-xs leading-snug ${notif.read ? 'text-navy-600 font-medium' : 'text-navy-800 font-semibold'}`}>
-                          {notif.title}
-                        </p>
-                        <p className="text-navy-400 text-[10px] mt-0.5 line-clamp-1">{notif.description}</p>
-                      </div>
-                      {!notif.read && (
-                        <span className={`w-1.5 h-1.5 rounded-full ${styles.dot} flex-shrink-0 mt-2`}></span>
-                      )}
+                {recentNotifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`flex items-start gap-3 px-4 py-3 hover:bg-stone-50 transition-colors cursor-pointer border-b border-stone-50 last:border-0`}
+                    onClick={() => setNotifOpen(false)}
+                  >
+                    <div className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 mt-0.5 bg-sky-50 border border-sky-100">
+                      <i className="ri-notification-3-line text-sky-600 text-xs"></i>
                     </div>
-                  );
-                })}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs leading-snug ${notif.is_read ? 'text-navy-600 font-medium' : 'text-navy-800 font-semibold'}`}>
+                        {notif.title}
+                      </p>
+                      <p className="text-navy-400 text-[10px] mt-0.5 line-clamp-1">{notif.message}</p>
+                    </div>
+                    {!notif.is_read && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0 mt-2"></span>
+                    )}
+                  </div>
+                ))}
               </div>
 
               {/* Footer */}
