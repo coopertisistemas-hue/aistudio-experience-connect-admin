@@ -22,15 +22,6 @@ export default async (req: Request): Promise<Response> => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const mpAccessToken = Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN');
-
-  if (!mpAccessToken) {
-    console.error('MERCADO_PAGO_ACCESS_TOKEN not configured');
-    return new Response(
-      JSON.stringify({ error: 'Payment gateway not configured' }),
-      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-    );
-  }
 
   const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
@@ -92,6 +83,27 @@ export default async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ error: 'Booking hold has no booking' }),
       { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+    );
+  }
+
+  // Fetch tenant settings for Mercado Pago credentials
+  const { data: tenant, error: tenantError } = await adminClient
+    .from('tenants')
+    .select('settings')
+    .eq('id', hold.tenant_id)
+    .single();
+
+  const tenantSettings = (tenant?.settings as Record<string, unknown>) || {};
+  const mpAccessToken =
+    (tenantSettings.mercadopago_access_token as string) ||
+    Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN') ||
+    '';
+
+  if (!mpAccessToken) {
+    console.error(`Mercado Pago not configured for tenant ${hold.tenant_id}`);
+    return new Response(
+      JSON.stringify({ error: 'Payment gateway not configured for this tenant' }),
+      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
     );
   }
 

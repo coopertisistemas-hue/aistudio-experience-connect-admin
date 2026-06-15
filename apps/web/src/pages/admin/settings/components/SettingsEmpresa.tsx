@@ -28,6 +28,9 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
     address: tenant.address,
     city: tenant.city,
     country: tenant.country,
+    whatsapp_number: tenant.whatsapp_number || '',
+    whatsapp_message_template: tenant.whatsapp_message_template || '',
+    mercadopago_access_token: tenant.mercadopago_access_token || '',
   });
   const [dirty, setDirty] = useState(false);
 
@@ -181,6 +184,57 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
         </div>
       </div>
 
+      {/* WhatsApp section */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-stone-600">WhatsApp</label>
+        <p className="text-[11px] text-stone-400 -mt-0.5">
+          Número com DDI + DDD para o botão de WhatsApp no site público.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-stone-600">Número WhatsApp</label>
+          <input
+            type="text"
+            value={form.whatsapp_number}
+            onChange={(e) => handleChange('whatsapp_number', e.target.value)}
+            placeholder="5511999999999"
+            className="px-3 py-2.5 text-sm border border-stone-200 rounded-xl bg-stone-50 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-colors"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-stone-600">Mensagem Padrão</label>
+          <input
+            type="text"
+            value={form.whatsapp_message_template}
+            onChange={(e) => handleChange('whatsapp_message_template', e.target.value)}
+            placeholder="Olá! Tenho interesse no roteiro {route}"
+            className="px-3 py-2.5 text-sm border border-stone-200 rounded-xl bg-stone-50 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Mercado Pago section */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-stone-600">Mercado Pago</label>
+        <p className="text-[11px] text-stone-400 -mt-0.5">
+          Token de acesso por tenant. Cada cliente configura sua própria conta Mercado Pago.
+        </p>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-semibold text-stone-600">Access Token</label>
+        <input
+          type="password"
+          value={form.mercadopago_access_token}
+          onChange={(e) => handleChange('mercadopago_access_token', e.target.value)}
+          placeholder="APP_USR-..."
+          className="px-3 py-2.5 text-sm border border-stone-200 rounded-xl bg-stone-50 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-teal-400 transition-colors"
+        />
+        <p className="text-[11px] text-stone-400">
+          O token é armazenado no settings do tenant e usado pela Edge Function create-payment-preference.
+        </p>
+      </div>
+
       {/* Save bar */}
       <div className={`flex items-center justify-between gap-4 px-5 py-4 bg-white border rounded-2xl transition-all duration-300 ${dirty ? 'border-teal-300 bg-teal-50/30' : 'border-stone-200'}`}>
         <div className="flex items-center gap-2">
@@ -199,7 +253,7 @@ export default function SettingsEmpresa({ tenant, onSave }: SettingsEmpresaProps
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => { setForm({ name: tenant.name, slug: tenant.slug, email: tenant.email, phone: tenant.phone, address: tenant.address, city: tenant.city, country: tenant.country }); setDirty(false); }}
+            onClick={() => { setForm({ name: tenant.name, slug: tenant.slug, email: tenant.email, phone: tenant.phone, address: tenant.address, city: tenant.city, country: tenant.country, whatsapp_number: tenant.whatsapp_number || '', whatsapp_message_template: tenant.whatsapp_message_template || '', mercadopago_access_token: tenant.mercadopago_access_token || '' }); setDirty(false); }}
             className="px-4 py-2 text-xs font-medium text-stone-600 border border-stone-200 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer whitespace-nowrap"
           >
             Descartar

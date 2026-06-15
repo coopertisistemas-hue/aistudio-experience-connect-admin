@@ -36,6 +36,9 @@ export interface TenantProfile {
   auto_confirm_bookings: boolean;
   require_checkin_confirmation: boolean;
   operating_days: string[];
+  whatsapp_number: string;
+  whatsapp_message_template: string;
+  mercadopago_access_token: string;
   created_at: string;
   branding: Record<string, unknown>;
 }
@@ -77,6 +80,9 @@ const defaultTenantProfile = (row: TenantRow): TenantProfile => {
     auto_confirm_bookings: (operational.auto_confirm as boolean) ?? false,
     require_checkin_confirmation: (operational.require_checkin as boolean) ?? true,
     operating_days: (operational.operating_days as string[]) || ['seg', 'ter', 'qua', 'qui', 'sex'],
+    whatsapp_number: (s.whatsapp_number as string) || '',
+    whatsapp_message_template: (s.whatsapp_message_template as string) || '',
+    mercadopago_access_token: (s.mercadopago_access_token as string) || '',
     created_at: row.created_at,
     branding: (row.branding as Record<string, unknown>) || {},
   };
@@ -102,10 +108,13 @@ export const settingsService = {
     const profileFields: Record<string, unknown> = {};
     const operationalFields: Record<string, unknown> = {};
     const directFields: Record<string, unknown> = {};
+    const topLevelSettings: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(data)) {
       if (key === 'name' || key === 'slug') {
         directFields[key] = value;
+      } else if (['whatsapp_number', 'whatsapp_message_template', 'mercadopago_access_token'].includes(key)) {
+        topLevelSettings[key] = value;
       } else if (['timezone', 'operational_hours_start', 'operational_hours_end', 'default_transfer_duration', 'default_vehicle_capacity', 'delay_threshold_minutes', 'auto_confirm_bookings', 'require_checkin_confirmation', 'operating_days'].includes(key)) {
         const opKey = key === 'operational_hours_start' ? 'hours_start'
           : key === 'operational_hours_end' ? 'hours_end'
@@ -130,6 +139,7 @@ export const settingsService = {
     const currentSettings = ((current as { settings: Record<string, unknown> }).settings ?? {}) as Record<string, unknown>;
     const newSettings = {
       ...currentSettings,
+      ...topLevelSettings,
       profile: { ...(currentSettings.profile as Record<string, unknown> || {}), ...profileFields },
       operational: { ...(currentSettings.operational as Record<string, unknown> || {}), ...operationalFields },
     };
