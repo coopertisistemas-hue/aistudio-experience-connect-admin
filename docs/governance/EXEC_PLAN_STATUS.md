@@ -27,6 +27,7 @@ Experience Connect está em **Fase 1 → Fase 2** (transição). Backend (schema
 | S2.1.3 — Agenda VAN Live | ✅ COMPLETE | Agenda VAN migrada para dados live | 2026-06-12 | `ccdb8e1` |
 | S2.1.2 — Routes, Vehicles, Drivers Live | ✅ COMPLETE | Rotas, veículos e motoristas com dados live | 2026-06-12 | `e39fa4e` |
 | S2.1.1 — Bookings & Reservations Live | ✅ COMPLETE | Módulo de reservas com backend real | 2026-06-12 | (via S2.1.x) |
+| D1-D4 — Driver App Sprint 1 | ✅ COMPLETE | PWA mobile-friendly: login OTP, agenda, trip detail, check-in/out | 2026-06-15 | `c168c5b` |
 | S0.2 — Foundation Repairs | ✅ COMPLETE | Migration hardening, governance docs committed | 2026-06-04 | `080c4c7` |
 | S0.1 — Governance Inventory | ✅ COMPLETE | Inventory report, blocker B-01 resolved | 2026-06-11 | `8327fb3` |
 | S3 — Lint Cleanup & Type Hardening | ✅ COMPLETE | Lint/typecheck zerados, escopo realinhado | 2026-06-11 | `c736976` |
@@ -47,6 +48,7 @@ Experience Connect está em **Fase 1 → Fase 2** (transição). Backend (schema
 | Fase 1 — Core (Weeks 3-6) | ~90% | 🟡 |
 | Fase 2 — Frontend Foundation (v0.4.0 → v0.6.x) | ~65% | 🟡 |
 | Fase 3 — Scale (Weeks 11-14) | 0% | ⚪ |
+| Driver App — Sprint 1 (D1-D4) | 100% | ✅ |
 
 ---
 
@@ -54,7 +56,7 @@ Experience Connect está em **Fase 1 → Fase 2** (transição). Backend (schema
 
 | Document | Status |
 |----------|--------|
-| `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` | ACTIVE — Onda A concluída, Onda B aprovada, Onda C pendente |
+| `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` | ACTIVE — Onda A ✅ / Onda B ✅ / Onda C ✅ / Driver Sprint 1 ✅ |
 
 ---
 
