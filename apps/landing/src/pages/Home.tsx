@@ -3,8 +3,15 @@ import { Helmet } from 'react-helmet-async';
 import { CatalogSection } from '@/components/CatalogSection';
 import { CTASection } from '@/components/CTASection';
 import { HeroSection } from '@/components/HeroSection';
+import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { getWhatsAppNumber } from '@/lib/whatsapp';
+
+const TENANT_ID = import.meta.env.VITE_PUBLIC_TENANT_ID || 'default';
 
 export function Home() {
+  const { data: tenantSettings } = useTenantSettings(TENANT_ID);
+  const whatsappNumber = getWhatsAppNumber(tenantSettings, '5511999999999');
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -15,7 +22,7 @@ export function Home() {
       'Transfers exclusivos, experiências únicas e concierge digital para hóspedes de alto padrão.',
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+55-11-99999-9999',
+      telephone: `+55-${whatsappNumber.slice(2)}`,
       contactType: 'customer service',
       email: 'contato@dompietro.com',
     },
@@ -44,7 +51,7 @@ export function Home() {
 
       <HeroSection />
       <CatalogSection />
-      <CTASection />
+      <CTASection whatsappNumber={whatsappNumber} />
     </>
   );
 }

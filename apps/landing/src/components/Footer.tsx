@@ -1,5 +1,10 @@
 import { Link } from 'react-router-dom';
 
+import { useTenantSettings } from '@/hooks/useTenantSettings';
+import { getWhatsAppNumber } from '@/lib/whatsapp';
+
+const TENANT_ID = import.meta.env.VITE_PUBLIC_TENANT_ID || 'default';
+
 const quickLinks = [
   { to: '/', label: 'Início' },
   { to: '/#experiencias', label: 'Experiências' },
@@ -28,6 +33,16 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const { data: tenantSettings } = useTenantSettings(TENANT_ID);
+  const whatsappNumber = getWhatsAppNumber(tenantSettings);
+
+  const links = socialLinks.map((link) => {
+    if (link.label === 'WhatsApp' && whatsappNumber) {
+      return { ...link, href: `https://wa.me/${whatsappNumber.replace(/\D/g, '')}` };
+    }
+    return link;
+  });
+
   return (
     <footer className="border-t border-white/5 bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -88,7 +103,7 @@ export function Footer() {
               </li>
               <li>
                 <div className="flex items-center gap-3 pt-2">
-                  {socialLinks.map((social) => (
+                  {links.map((social) => (
                     <a
                       key={social.label}
                       href={social.href}
