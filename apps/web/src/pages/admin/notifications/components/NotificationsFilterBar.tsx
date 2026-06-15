@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ALL_CATEGORIES, SEVERITY_LABELS } from '@/mocks/admin-notifications';
-import type { NotificationSeverity } from '@/mocks/admin-notifications';
+
+const ALL_CATEGORIES = ['Reservas', 'Pagamentos', 'Transfers', 'Motoristas', 'Veículos', 'Sistema'];
+const SEVERITY_LABELS: Record<string, string> = { critical: 'Crítico', warning: 'Atenção', success: 'Sucesso', info: 'Informativo' };
 
 export interface NotificationsFilters {
   search: string;
   category: string;
-  severity: NotificationSeverity | '';
+  severity: string | '';
   readState: 'all' | 'unread' | 'read';
   period: 'all' | 'today' | 'yesterday' | 'week';
 }
@@ -17,7 +18,7 @@ interface NotificationsFilterBarProps {
   onMarkAllRead: () => void;
 }
 
-const SEVERITY_OPTIONS: Array<{ value: NotificationSeverity | ''; label: string }> = [
+const SEVERITY_OPTIONS: Array<{ value: string; label: string }> = [
   { value: '', label: 'Todas' },
   { value: 'critical', label: 'Crítica' },
   { value: 'warning', label: 'Atenção' },
@@ -178,12 +179,12 @@ export default function NotificationsFilterBar({
             </label>
             <select
               value={filters.severity}
-              onChange={(e) => set({ severity: e.target.value as NotificationSeverity | '' })}
+              onChange={(e) => set({ severity: e.target.value as string })}
               className="w-full h-8 text-xs bg-white border border-stone-200 rounded-xl px-2.5 text-navy-700 focus:outline-none focus:border-teal-400/60 cursor-pointer"
             >
               {SEVERITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.value ? SEVERITY_LABELS[opt.value as NotificationSeverity] : 'Todas as severidades'}
+                  {opt.value ? SEVERITY_LABELS[opt.value] : 'Todas as severidades'}
                 </option>
               ))}
             </select>

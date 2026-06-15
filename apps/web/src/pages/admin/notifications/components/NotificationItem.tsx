@@ -1,6 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import type { MockNotification } from '@/mocks/admin-notifications';
-import { SEVERITY_LABELS, SEVERITY_STYLES } from '@/mocks/admin-notifications';
+import type { NotifItem } from './NotificationsFeed';
+
+const SEVERITY_STYLES: Record<string, { icon: string; badge: string; border: string; dot: string }> = {
+  critical: { icon: 'text-red-600', badge: 'bg-red-100 text-red-700', border: 'border-l-2 border-red-400', dot: 'bg-red-500' },
+  warning:  { icon: 'text-amber-600', badge: 'bg-amber-100 text-amber-700', border: 'border-l-2 border-amber-400', dot: 'bg-amber-500' },
+  success:  { icon: 'text-teal-600', badge: 'bg-teal-100 text-teal-700', border: 'border-l-2 border-teal-400', dot: 'bg-teal-500' },
+  info:     { icon: 'text-sky-600', badge: 'bg-sky-100 text-sky-700', border: 'border-l-2 border-sky-300', dot: 'bg-sky-400' },
+};
+const SEVERITY_LABELS: Record<string, string> = { critical: 'Crítico', warning: 'Atenção', success: 'Sucesso', info: 'Informativo' };
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
@@ -13,7 +20,7 @@ function formatDate(iso: string): string {
 }
 
 interface NotificationItemProps {
-  notification: MockNotification;
+  notification: NotifItem;
   onMarkRead: (id: string) => void;
   onResolve: (id: string) => void;
   onIgnore: (id: string) => void;

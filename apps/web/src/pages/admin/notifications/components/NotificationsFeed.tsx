@@ -1,15 +1,21 @@
-import type { MockNotification, NotificationGroup } from '@/mocks/admin-notifications';
 import NotificationItem from './NotificationItem';
 
+export interface NotifItem {
+  id: string; type: string; title: string; description: string; severity: string; category: string;
+  read: boolean; resolved: boolean; group: string; entity_ref: string | null; entity_label: string | null;
+  entity_path: string | null; icon: string; created_at: string; timestamp: string;
+  action_label: string | null;
+}
+
 interface NotificationsFeedProps {
-  notifications: MockNotification[];
+  notifications: NotifItem[];
   loading: boolean;
   onMarkRead: (id: string) => void;
   onResolve: (id: string) => void;
   onIgnore: (id: string) => void;
 }
 
-const GROUP_ORDER: NotificationGroup[] = ['Hoje', 'Ontem', 'Esta semana'];
+const GROUP_ORDER = ['Hoje', 'Ontem', 'Esta semana'];
 
 export default function NotificationsFeed({
   notifications,
@@ -18,8 +24,7 @@ export default function NotificationsFeed({
   onResolve,
   onIgnore,
 }: NotificationsFeedProps) {
-  // Group by temporal label
-  const grouped = GROUP_ORDER.reduce<Record<string, MockNotification[]>>((acc, g) => {
+  const grouped = GROUP_ORDER.reduce<Record<string, NotifItem[]>>((acc, g) => {
     const items = notifications.filter((n) => n.group === g);
     if (items.length > 0) acc[g] = items;
     return acc;
