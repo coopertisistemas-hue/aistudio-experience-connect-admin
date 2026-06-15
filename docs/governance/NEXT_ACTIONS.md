@@ -1,83 +1,81 @@
 # NEXT_ACTIONS.md — Experience Connect
 
-**Version:** 1.1  
-**Generated:** 2026-06-12  
+**Version:** 1.2  
+**Generated:** 2026-06-15  
+**Active Plan:** `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md`
 
 ---
 
 ## Priority Actions
 
-### Action 1 — Obter Aprovação para Sprint S3
-**Priority:** P0 — BLOCKER  
-**Owner:** Alexandre/ChatGPT  
-**Descrição:** ✅ COMPLETED — Sprint S3 (Lint Cleanup & Type Hardening) resolvido sem necessidade de aprovação externa (lint/typecheck já zerados).
-**Dependências:** Nenhuma
-**Repo:** `aistudio-experience-connect-admin`
-
----
-
-### Action 2 — Commit Governança Pendente
-**Priority:** P0 — DOCUMENTATION  
-**Owner:** Kimi  
-**Descrição:** Commitar AGENTS.md, AI_RULES.md, EXEC_PLAN_STATUS.md, NEXT_ACTIONS.md e diretórios runtime/, blockers/, handoffs/, decisions/.
-**Dependências:** Nenhuma
-**Repo:** `aistudio-experience-connect-admin`
-
----
-
-### Action 3 — Executar Sprint S3: Lint Cleanup & Type Hardening
-**Priority:** P1 — EXECUTION  
+### Action 1 — Executar Onda C: Consolidação Técnica
+**Priority:** P0 — EXECUTION  
 **Owner:** Kimi + Codex  
-**Descrição:** ✅ COMPLETED — Lint/typecheck já zerados, escopo realinhado para Experience Connect.
-**Dependências:** Action 1 (resolved)
+**Descrição:** Verificar gates (typecheck/lint/build), Playwright E2E, inventory de mocks, cobertura de hooks, RLS baseline (Supabase Cloud), operational risks update, remover apps/admin.
+**Dependências:** Onda A concluída, Onda B aprovada, Claude audit
 **Repo:** `aistudio-experience-connect-admin`
+**Doc:** `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` — Seção 4
 
 ---
 
-### Action 4 — Resolver Conflito de Governança (V1 vs REFERENCE)
-**Priority:** P1 — GOVERNANCE  
-**Owner:** DeepSeek  
-**Descrição:** Unificar CONNECT_EXECUTION_GOVERNANCE_V1.md e CONNECT_EXECUTION_GOVERNANCE_REFERENCE.md em governance V2.
-**Dependências:** Action 2
-**Repo:** `aistudio-experience-connect-admin`
-
----
-
-### Action 5 — Resolver Dependências Externas (AGENTS.md, AI_RULES.md)
-**Priority:** P1 — GOVERNANCE  
-**Owner:** DeepSeek  
-**Descrição:** Garantir que AGENTS.md e AI_RULES.md existam no repo e sejam referenciados corretamente.
-**Dependências:** Action 2
-**Repo:** `aistudio-experience-connect-admin`
-
----
-
-### Action 6 — Avançar Fase 1 (Core)
-**Priority:** P2 — PRODUCT  
-**Owner:** Kimi  
-**Descrição:** CRUD de reservas (frontend UI), Agenda VAN, App do hóspede, Painel admin, Integração Mercado Pago.
-**Dependências:** Action 3
-**Repo:** `aistudio-experience-connect-admin`
-
----
-
-### Action 7 — R3 Deferred: DB RPC Seat-Release Duplication
-**Priority:** P3 — COMPLETED  
-**Owner:** Kimi  
-**Descrição:** ✅ COMPLETED — Seat-release logic extraída para função compartilhada `release_slot_capacity`. `cancel_booking`, `expire_booking_hold` e `reschedule_booking` refatoradas.
+### Action 2 — Claude Audit: Consolidation Exec Plan V1
+**Priority:** P0 — AUDIT  
+**Owner:** Claude  
+**Descrição:** Revisar o Consolidation Exec Plan V1 quanto a segurança, arquitetura, RLS/tenant isolation e riscos operacionais. Emitir relatório com findings classificados por severidade.
 **Dependências:** Nenhuma
 **Repo:** `aistudio-experience-connect-admin`
+**Doc:** `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` — Seção 11
+
+---
+
+### Action 3 — Implementar Driver App (apps/driver)
+**Priority:** P1 — PRODUCT  
+**Owner:** Kimi + Codex  
+**Descrição:** Criar PWA mobile-friendly para motorista responsável pelo grupo. 7 sprints: setup (D1), auth (D2), agenda (D3), trip detail (D4), navegação + ocorrências (D5), offline (D6), testes (D7).
+**Dependências:** Onda C concluída
+**Repo:** `aistudio-experience-connect-admin`
+**Doc:** `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` — Seção 5
+
+---
+
+### Action 4 — Minimax Audit: Pós-Onda C
+**Priority:** P1 — VALIDATION  
+**Owner:** Minimax  
+**Descrição:** Auditoria independente de validação técnica após conclusão da Onda C.
+**Dependências:** Action 1 (Onda C concluída)
+**Repo:** `aistudio-experience-connect-admin`
+
+---
+
+### Action 5 — Commit e Versionamento
+**Priority:** P2 — GOVERNANCE  
+**Owner:** Gemini (Git & Governance)  
+**Descrição:** Commitar todos os arquivos atualizados na Onda A (EXEC_PLAN_STATUS.md, ORCHESTRATOR_CONTEXT.md, NEXT_ACTIONS.md, CURRENT_BLOCKERS.md, GOVERNANCE_STATE.md) e o novo CONSOLIDATION_EXEC_PLAN_V1.md. Seguir conventional commits em português.
+**Dependências:** Onda A concluída
+**Repo:** `aistudio-experience-connect-admin`
+
+---
+
+## Completed Actions
+
+| # | Action | Completed |
+|---|--------|-----------|
+| 1 | Approve Sprint S3 | ✅ 2026-06-11 |
+| 2 | Commit governance | ✅ 2026-06-11 |
+| 3 | Execute Sprint S3 | ✅ 2026-06-11 |
+| 4 | Resolve governance conflict (REFERENCE mantido como ponteiro benigno) | ✅ 2026-06-15 |
+| 5 | Resolve external deps | ✅ 2026-06-11 |
+| 6 | Fase 1 Core (parcialmente concluído via S2.1.x + S3.1.x) | ✅ 2026-06-12 |
+| 7 | R3: DB RPC Seat-Release Duplication | ✅ 2026-06-12 |
 
 ---
 
 ## Summary Matrix
 
-| # | Action | Priority | Complexity | Dependencies |
-|---|--------|----------|------------|--------------|
-| 1 | Approve Sprint S3 | P0 | S | ✅ COMPLETED |
-| 2 | Commit governance | P0 | S | ✅ COMPLETED |
-| 3 | Execute Sprint S3 | P1 | M | ✅ COMPLETED |
-| 4 | Resolve governance conflict | P1 | S | Action 2 |
-| 5 | Resolve external deps | P1 | S | Action 2 |
-| 6 | Fase 1 Core | P2 | XL | Action 3 |
-| 7 | R3: DB RPC Seat-Release Duplication | P3 | M | ✅ COMPLETED |
+| # | Action | Priority | Complexity | Dependencies | Status |
+|---|--------|----------|------------|--------------|--------|
+| 1 | Onda C — Consolidação Técnica | P0 | M | Onda B + Claude audit | PENDING |
+| 2 | Claude Audit — Exec Plan V1 | P0 | S | Nenhuma | PENDING |
+| 3 | Driver App PWA | P1 | L | Onda C concluída | PENDING |
+| 4 | Minimax Audit — Pós-Onda C | P1 | S | Action 1 | PENDING |
+| 5 | Commit e Versionamento | P2 | S | Onda A concluída | PENDING |

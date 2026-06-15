@@ -1,8 +1,8 @@
 # GOVERNANCE_STATE.md
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** ACTIVE  
-**Updated:** 2026-06-12  
+**Updated:** 2026-06-15  
 
 ---
 
@@ -11,6 +11,7 @@
 | ADR | Status | Scope |
 |-----|--------|-------|
 | ADR-008 — DeepSeek Orchestrator Constitution | **ACCEPTED** | All DeepSeek-based orchestrators |
+| Consolidation Exec Plan V1 | **ACTIVE** | `aistudio-experience-connect-admin` — Onda A concluída, Onda B aprovada |
 
 ---
 
@@ -18,8 +19,7 @@
 
 | Item | Requested By | Approver | Status |
 |------|-------------|----------|--------|
-| Sprint S3 — Lint Cleanup & Type Hardening | DeepSeek (Orchestrator) | ✅ RESOLVIDO — lint/typecheck já zerados | COMPLETED |
-| Sprint S0.1 — Governance Inventory Normalization | Claude | Kimi / DeepSeek | ✅ COMPLETED (2026-06-11) |
+| — | — | — | Nenhuma aprovação pendente |
 
 ---
 
@@ -38,7 +38,12 @@
 - DEEPSEEK.md — v1.0 (2026-06-05)
 - ADR-008 — v1.0 (2026-06-05)
 - CONNECT_EXECUTION_GOVERNANCE_V1.md — v1.0 (2026-06-05, updated 2026-06-06)
+- CONSOLIDATION_EXEC_PLAN_V1.md — v1.0 (2026-06-15)
 - SESSION_BOOTSTRAP_REQUIREMENTS.md — v1.0 (2026-06-05)
+- EXEC_PLAN_STATUS.md — v1.2 (2026-06-15)
+- ORCHESTRATOR_CONTEXT.md — v1.2 (2026-06-15)
+- NEXT_ACTIONS.md — v1.2 (2026-06-15)
+- CURRENT_BLOCKERS.md — v1.1 (2026-06-15)
 - ORCHESTRATOR_ACCEPTANCE_TEST.md — v1.0 (2026-06-05)
 
 ---
@@ -47,19 +52,29 @@
 
 | Agent | Role | Certified | Notes |
 |-------|------|-----------|-------|
-| DeepSeek | Orchestrator | ✅ YES | Passed acceptance test, approved by ChatGPT/Alexandre |
-| Kimi | Factory Floor Lead / Execution | ✅ YES | Sprint S0.2 delivered |
-| Claude | Security & Architecture Auditor | ✅ YES | |
-| Gemini | Git & Governance Auditor | ✅ YES | |
-| Codex | Execution | ✅ YES | |
-| Minimax | Independent Validator | ✅ YES | Audit layer active |
+| DeepSeek | Orchestrator | ✅ YES | Onda A concluída; Onda B aprovada |
+| Kimi | Factory Floor Lead / Execution | ✅ YES | Atribuído: Onda C + Driver D2-D4, D7 |
+| Claude | Security & Architecture Auditor | ✅ YES | Audit request: Consolidation Exec Plan V1 |
+| Gemini | Git & Governance Auditor | ✅ YES | Atribuído: commit e versionamento |
+| Codex | Execution | ✅ YES | Atribuído: Onda C auditoria + Driver D1, D5-D6 |
+| Minimax | Independent Validator | ✅ YES | Atribuído: auditoria pós-Onda C |
 
 ---
 
-## Operational Risks (from Transition Report)
+## Active Exec Plan
 
-1. update_updated_at_column() validation — Owner: Codex/Claude — Tracking: Sprint 1.2+
-2. Orphaned edge functions — Owner: Kimi/Gemini — Tracking: Sprint 0.2/Phase 1 cleanup
-3. Duplicated edge functions — Owner: Codex/Minimax — Tracking: Phase 7, Sprint 7.1
-4. Infrastructure visibility validation — Owner: Gemini/ChatGPT — Tracking: Sprint 0.2+
-5. Security migration execution — Owner: Claude/Codex — Tracking: Phase 1, Sprints 1.1–1.2
+| Document | Status | Progress |
+|----------|--------|----------|
+| `docs/EXECUTION/CONSOLIDATION_EXEC_PLAN_V1.md` | IN PROGRESS | Onda A ✅ / Onda B ✅ / Onda C ⬜ / Driver ⬜ |
+
+---
+
+## Operational Risks
+
+| # | Risk | Status | Owner | Evidence |
+|---|------|--------|-------|----------|
+| R1 | update_updated_at_column() validation | ✅ RESOLVED | Codex/Claude | Commit `56dea14` (OR1) |
+| R2 | Orphaned edge functions | 🔍 VERIFY | Kimi/Gemini | Pendente — Onda C |
+| R3 | Duplicated edge functions | 🔍 VERIFY | Codex/Minimax | Pendente — Onda C |
+| R4 | Infrastructure visibility validation | ⏳ TRACKING | Gemini/ChatGPT | Validar Vercel + Supabase configs |
+| R5 | Security migration execution | ✅ RESOLVED | Claude/Codex | Commits `56dea14`, `1dd3033` |
