@@ -76,7 +76,7 @@ export const transfersService = {
       return { data: [], total: 0 };
     }
 
-    const items = ((data ?? []) as unknown[]).map(toTransferItem);
+    const items = ((data ?? []) as Record<string, unknown>[]).map(toTransferItem);
     return { data: items, total: count ?? 0 };
   },
 
@@ -92,6 +92,6 @@ export const transfersService = {
       return null;
     }
 
-    return toTransferItem(data as unknown);
+    return toTransferItem(data as unknown as Record<string, unknown>);
   },
 };

@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🛡️ VC Gov: Análise de governança",
+      "type": "shell",
+      "command": "~/vc-gov/agents/vc-gov.sh",
+      "args": ["${workspaceFolder}"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🧭 VC Orch: Planejamento de sprint",
+      "type": "shell",
+      "command": "~/vc-gov/agents/vc-orch.sh",
+      "args": ["${workspaceFolder}"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔒 VC Agy Gov: Governança Git",
+      "type": "shell",
+      "command": "~/vc-gov/agents/vc-agy-gov.sh",
+      "args": ["${workspaceFolder}"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
