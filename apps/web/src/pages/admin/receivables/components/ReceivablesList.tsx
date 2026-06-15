@@ -1,9 +1,9 @@
-import type { MockReceivable, ReceivableStatus, PaymentMethod } from '@/mocks/admin-receivables';
-import { receivableStatusLabels, paymentMethodLabels, paymentMethodIcons } from '@/mocks/admin-receivables';
+import type { ReceivableItem, ReceivableStatus, PaymentMethodName } from '@/services/receivables';
+import { receivableStatusLabels, paymentMethodLabels, paymentMethodIcons } from '@/services/receivables';
 
 interface Props {
-  receivables: MockReceivable[];
-  onSelect: (r: MockReceivable) => void;
+  receivables: ReceivableItem[];
+  onSelect: (r: ReceivableItem) => void;
   selectedId?: string;
   loading?: boolean;
 }
@@ -16,7 +16,7 @@ const STATUS_STYLES: Record<ReceivableStatus, { bg: string; text: string; dot: s
   cancelled: { bg: 'bg-stone-100',  text: 'text-stone-500',  dot: 'bg-stone-400',  border: 'border-stone-200' },
 };
 
-const METHOD_COLORS: Record<PaymentMethod, string> = {
+const METHOD_COLORS: Record<PaymentMethodName, string> = {
   pix:           'text-teal-600 bg-teal-50',
   credit_card:   'text-indigo-600 bg-indigo-50',
   debit_card:    'text-sky-600 bg-sky-50',

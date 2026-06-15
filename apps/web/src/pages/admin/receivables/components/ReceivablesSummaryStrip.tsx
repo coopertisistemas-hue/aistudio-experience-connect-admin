@@ -1,7 +1,17 @@
-import { mockReceivablesStats } from '@/mocks/admin-receivables';
+interface ReceivablesStats {
+  total_to_receive: number;
+  received_today: number;
+  open_count: number;
+  overdue_count: number;
+  overdue_amount: number;
+  avg_ticket: number;
+  cashflow_forecast: number;
+}
 
-export default function ReceivablesSummaryStrip() {
-  const s = mockReceivablesStats;
+interface Props { stats: ReceivablesStats }
+
+export default function ReceivablesSummaryStrip({ stats }: Props) {
+  const s = stats;
 
   const fmt = (v: number) =>
     v >= 1000

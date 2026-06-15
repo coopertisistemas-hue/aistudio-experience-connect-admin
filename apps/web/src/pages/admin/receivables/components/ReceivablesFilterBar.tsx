@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { ReceivableStatus, PaymentMethod } from '@/mocks/admin-receivables';
+import type { ReceivableStatus, PaymentMethodName } from '@/services/receivables';
 
 export interface ReceivablesFilters {
   search: string;
   status: ReceivableStatus | 'all';
-  method: PaymentMethod | 'all';
+  method: PaymentMethodName | 'all';
   period: 'today' | 'week' | 'month' | 'all';
 }
 
@@ -98,7 +98,7 @@ export default function ReceivablesFilterBar({ filters, onChange, total, filtere
             <label className="text-[11px] font-semibold text-stone-500 uppercase tracking-wide">Método</label>
             <select
               value={filters.method}
-              onChange={(e) => onChange({ ...filters, method: e.target.value as PaymentMethod | 'all' })}
+              onChange={(e) => onChange({ ...filters, method: e.target.value as PaymentMethodName | 'all' })}
               className="w-full h-8 px-2.5 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-400/40 cursor-pointer"
             >
               <option value="all">Todos métodos</option>

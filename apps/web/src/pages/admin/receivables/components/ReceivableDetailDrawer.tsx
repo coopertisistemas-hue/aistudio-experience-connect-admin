@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { MockReceivable } from '@/mocks/admin-receivables';
-import { receivableStatusLabels, paymentMethodLabels, paymentMethodIcons } from '@/mocks/admin-receivables';
+import type { ReceivableItem } from '@/services/receivables';
+import { receivableStatusLabels, paymentMethodLabels, paymentMethodIcons } from '@/services/receivables';
 
 interface Props {
-  receivable: MockReceivable;
+  receivable: ReceivableItem;
   onClose: () => void;
   onConfirm?: () => void;
 }
@@ -32,7 +32,7 @@ const TIMELINE_EVENTS = [
   { label: 'Aguardando pagamento', date: 'due_date', type: 'waiting', icon: 'ri-time-line', color: 'bg-amber-100 text-amber-600' },
 ];
 
-function FinanceiroTab({ rec }: { rec: MockReceivable }) {
+function FinanceiroTab({ rec }: { rec: ReceivableItem }) {
   const s = STATUS_STYLES[rec.status];
   const progressPct = rec.amount > 0 ? Math.round((rec.amount_received / rec.amount) * 100) : 0;
   const pending = rec.amount - rec.amount_received;
@@ -115,7 +115,7 @@ function FinanceiroTab({ rec }: { rec: MockReceivable }) {
   );
 }
 
-function ReservaTab({ rec }: { rec: MockReceivable }) {
+function ReservaTab({ rec }: { rec: ReceivableItem }) {
   return (
     <div className="bg-white border border-stone-200 rounded-xl divide-y divide-stone-100">
       {[
@@ -140,7 +140,7 @@ function ReservaTab({ rec }: { rec: MockReceivable }) {
   );
 }
 
-function PassageiroTab({ rec }: { rec: MockReceivable }) {
+function PassageiroTab({ rec }: { rec: ReceivableItem }) {
   const initials = rec.passenger_name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
   return (
     <div className="space-y-4">
@@ -163,7 +163,7 @@ function PassageiroTab({ rec }: { rec: MockReceivable }) {
   );
 }
 
-function TimelineTab({ rec }: { rec: MockReceivable }) {
+function TimelineTab({ rec }: { rec: ReceivableItem }) {
   const events = [
     { label: `Recebível registrado`, date: new Date(rec.created_at).toLocaleDateString('pt-BR'), icon: 'ri-add-circle-line', color: 'bg-teal-100 text-teal-600' },
     { label: 'Cobrança enviada ao passageiro', date: new Date(rec.created_at).toLocaleDateString('pt-BR'), icon: 'ri-mail-send-line', color: 'bg-indigo-100 text-indigo-600' },
@@ -193,7 +193,7 @@ function TimelineTab({ rec }: { rec: MockReceivable }) {
   );
 }
 
-function ObservacoesTab({ rec }: { rec: MockReceivable }) {
+function ObservacoesTab({ rec }: { rec: ReceivableItem }) {
   const [note, setNote] = useState('');
   return (
     <div className="space-y-4">

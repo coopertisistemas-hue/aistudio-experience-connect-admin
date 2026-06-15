@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { mockReceivables } from '@/mocks/admin-receivables';
-import type { MockReceivable } from '@/mocks/admin-receivables';
+import { useReceivables } from '@/hooks/useReceivables';
+import type { ReceivableItem } from '@/services/receivables';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
+import LoadingSkeleton from '@/pages/admin/components/ui/LoadingSkeleton';
 import ReceivablesSummaryStrip from './components/ReceivablesSummaryStrip';
 import ReceivablesFilterBar from './components/ReceivablesFilterBar';
 import type { ReceivablesFilters } from './components/ReceivablesFilterBar';
@@ -18,7 +19,7 @@ const INITIAL_FILTERS: ReceivablesFilters = {
   period: 'all',
 };
 
-function applyFilters(items: MockReceivable[], f: ReceivablesFilters): MockReceivable[] {
+function applyFilters(items: ReceivableItem[], f: ReceivablesFilters): ReceivableItem[] {
   return items.filter((r) => {
     if (f.status !== 'all' && r.status !== f.status) return false;
     if (f.method !== 'all' && r.method !== f.method) return false;
@@ -34,17 +35,31 @@ function applyFilters(items: MockReceivable[], f: ReceivablesFilters): MockRecei
   });
 }
 
+function computeStats(items: ReceivableItem[]) {
+  const total_to_receive = items.reduce((s, r) => s + (r.status === 'open' || r.status === 'overdue' || r.status === 'partial' ? r.amount - r.amount_received : 0), 0);
+  const total_amount = items.reduce((s, r) => s + r.amount, 0);
+  const received_today = items.filter((r) => r.status === 'received').reduce((s, r) => s + r.amount, 0);
+  const open_count = items.filter((r) => r.status === 'open').length;
+  const overdue_items = items.filter((r) => r.status === 'overdue');
+  const overdue_count = overdue_items.length;
+  const overdue_amount = overdue_items.reduce((s, r) => s + r.amount, 0);
+  const avg_ticket = items.length > 0 ? Math.round(total_amount / items.length) : 0;
+  const cashflow_forecast = items.filter((r) => r.status === 'open' || r.status === 'overdue').reduce((s, r) => s + r.amount, 0);
+
+  return { total_to_receive, received_today, open_count, overdue_count, overdue_amount, avg_ticket, cashflow_forecast };
+}
+
 export default function ReceivablesPage() {
+  const { data, isLoading, error } = useReceivables();
   const [filters, setFilters] = useState<ReceivablesFilters>(INITIAL_FILTERS);
-  const [selected, setSelected] = useState<MockReceivable | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<ReceivableItem | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [showForecast, setShowForecast] = useState(true);
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
+  const receivables = useMemo(() => data?.data ?? [], [data]);
+
+  const stats = useMemo(() => computeStats(receivables), [receivables]);
+  const filtered = useMemo(() => applyFilters(receivables, filters), [receivables, filters]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -54,16 +69,36 @@ export default function ReceivablesPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [selected]);
 
-  const filtered = useMemo(() => applyFilters(mockReceivables, filters), [filters]);
-
   const addToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = Date.now();
     setToasts((p) => [...p, { id, message, type }]);
     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
   }, []);
 
-  const overdueItems = mockReceivables.filter((r) => r.status === 'overdue');
-  const openCount = mockReceivables.filter((r) => r.status === 'open').length;
+  const overdueItems = receivables.filter((r) => r.status === 'overdue');
+  const openCount = receivables.filter((r) => r.status === 'open').length;
+
+  if (error) {
+    return (
+      <div className="p-4 md:p-6">
+        <div className="flex flex-col items-center justify-center py-20 bg-white border border-stone-200 rounded-xl">
+          <div className="w-14 h-14 flex items-center justify-center rounded-2xl bg-red-50 mb-4">
+            <i className="ri-error-warning-line text-2xl text-red-400"></i>
+          </div>
+          <p className="text-sm font-semibold text-stone-600 mb-1">Erro ao carregar recebíveis</p>
+          <p className="text-xs text-stone-400">Tente novamente mais tarde.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6">
+        <LoadingSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -110,7 +145,7 @@ export default function ReceivablesPage() {
         </div>
       )}
 
-      <ReceivablesSummaryStrip />
+      <ReceivablesSummaryStrip stats={stats} />
 
       {/* Cashflow toggle */}
       <div className="mb-3 flex items-center gap-2">
@@ -127,7 +162,7 @@ export default function ReceivablesPage() {
       <ReceivablesFilterBar
         filters={filters}
         onChange={setFilters}
-        total={mockReceivables.length}
+        total={receivables.length}
         filtered={filtered.length}
       />
 
@@ -135,7 +170,7 @@ export default function ReceivablesPage() {
         receivables={filtered}
         onSelect={setSelected}
         selectedId={selected?.id}
-        loading={loading}
+        loading={isLoading}
       />
 
       {selected && (
