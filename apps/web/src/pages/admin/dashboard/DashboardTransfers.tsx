@@ -43,11 +43,11 @@ export default function DashboardTransfers() {
               const dt = new Date(t.scheduled_at);
               const time = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
               const date = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-              const origin = t.pickup_location || t.routes?.origin || '—';
-              const destination = t.dropoff_location || t.routes?.destination || '—';
-              const driverName = t.drivers?.name ?? null;
-              const vehicleName = t.vehicles?.name ?? '—';
-              const vehiclePlate = t.vehicles?.plate ?? '';
+              const origin = t.origin;
+              const destination = t.destination;
+              const driverName = t.driver_name;
+              const vehicleName = t.vehicle_name;
+              const vehiclePlate = t.vehicle_plate;
               return (
                 <tr key={t.id} className="group hover:bg-sand-50 transition-colors duration-100">
                   <td className="py-3 pr-4">

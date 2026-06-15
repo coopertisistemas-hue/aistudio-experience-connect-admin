@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { mockTransfers, type MockTransfer, type TransferStatus } from '@/mocks/admin-transfers';
+import { useTransfers } from '@/hooks/useTransfers';
+import { useAuth } from '@/hooks/useAuth';
+import type { TransferItem, BookingStatus } from '@/services/transfers';
 import PageHeader from '@/pages/admin/components/ui/PageHeader';
+import LoadingSkeleton from '@/pages/admin/components/ui/LoadingSkeleton';
 import TransfersSummaryStrip from './components/TransfersSummaryStrip';
 import TransfersFilterBar, { type TransfersFilters } from './components/TransfersFilterBar';
 import TransfersOperationalList from './components/TransfersOperationalList';
@@ -23,10 +26,14 @@ interface Toast {
 }
 
 export default function TransfersPage() {
+  const { user } = useAuth();
+  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id || '';
+  const { data, isLoading } = useTransfers(tenantId);
+  const allTransfers = data?.data ?? [];
+
   const [filters, setFilters] = useState<TransfersFilters>(defaultFilters);
-  const [selectedTransfer, setSelectedTransfer] = useState<MockTransfer | null>(null);
+  const [selectedTransfer, setSelectedTransfer] = useState<TransferItem | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
-  const [loading] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -46,8 +53,8 @@ export default function TransfersPage() {
     return () => window.removeEventListener('keydown', handler);
   }, [selectedTransfer, showNewForm]);
 
-  const filtered = mockTransfers.filter((t) => {
-    if (filters.status !== 'all' && t.status !== (filters.status as TransferStatus)) return false;
+  const filtered = allTransfers.filter((t) => {
+    if (filters.status !== 'all' && t.status !== filters.status) return false;
     if (filters.driver !== 'all' && t.driver_name !== filters.driver) return false;
     if (filters.vehicleType !== 'all' && t.vehicle_type !== filters.vehicleType) return false;
     if (filters.dateFrom) {
@@ -74,11 +81,15 @@ export default function TransfersPage() {
     return true;
   });
 
-  const activeCount = mockTransfers.filter((t) =>
-    ['in_progress', 'driver_assigned', 'confirmed'].includes(t.status)
+  const activeCount = allTransfers.filter((t) =>
+    ['in_progress', 'confirmed'].includes(t.status)
   ).length;
 
-  const unassigned = mockTransfers.filter((t) => !t.driver_name && t.status !== 'cancelled').length;
+  const unassigned = allTransfers.filter((t) => !t.driver_name && t.status !== 'cancelled').length;
+
+  if (isLoading) {
+    return <div className="p-6"><LoadingSkeleton /></div>;
+  }
 
   return (
     <div className="p-6 max-w-[1600px]">
@@ -120,29 +131,18 @@ export default function TransfersPage() {
       />
 
       {/* Summary strip */}
-      <TransfersSummaryStrip transfers={mockTransfers} />
+      <TransfersSummaryStrip transfers={allTransfers} />
 
-      {/* Operational alert strip — delayed/unassigned */}
-      {mockTransfers.some((t) => t.status === 'delayed') && (
+      {/* Unassigned alert */}
+      {unassigned > 0 && (
         <div className="mb-5 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 border border-amber-200 flex-shrink-0">
-            <i className="ri-alarm-warning-line text-amber-600 text-sm"></i>
+            <i className="ri-user-unfollow-line text-amber-600 text-sm"></i>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-amber-800">
-              {mockTransfers.filter((t) => t.status === 'delayed').length} transfer(s) com atraso operacional
-            </p>
-            <p className="text-[10px] text-amber-600 mt-0.5">
-              Verifique os transfers atrasados e notifique os passageiros afetados.
-            </p>
+            <p className="text-xs font-semibold text-amber-800">{unassigned} transfer(s) sem motorista</p>
+            <p className="text-[10px] text-amber-600 mt-0.5">Atribua motoristas aos transfers pendentes.</p>
           </div>
-          <button
-            type="button"
-            onClick={() => setFilters((f) => ({ ...f, status: 'delayed' }))}
-            className="text-[10px] font-semibold text-amber-700 bg-white border border-amber-200 px-2.5 py-1.5 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            Ver atrasados
-          </button>
         </div>
       )}
 
@@ -150,7 +150,7 @@ export default function TransfersPage() {
       <TransfersFilterBar
         filters={filters}
         onChange={setFilters}
-        totalCount={mockTransfers.length}
+        totalCount={allTransfers.length}
         filteredCount={filtered.length}
       />
 
@@ -162,7 +162,7 @@ export default function TransfersPage() {
           setSelectedTransfer(t);
         }}
         selectedId={selectedTransfer?.id}
-        loading={loading}
+        loading={isLoading}
       />
 
       {/* Detail drawer */}

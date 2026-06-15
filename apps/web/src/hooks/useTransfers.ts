@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { transfersService } from '@/services/transfers';
 
-export function useTransfers() {
+export function useTransfers(tenantId?: string) {
   return useQuery({
-    queryKey: ['transfers'],
+    queryKey: ['transfers', tenantId],
     queryFn: () => transfersService.list(),
+    enabled: true,
   });
 }
 

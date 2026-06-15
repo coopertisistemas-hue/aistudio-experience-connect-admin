@@ -1,7 +1,7 @@
-import type { MockTransfer } from '@/mocks/admin-transfers';
+import type { TransferItem } from '@/services/transfers';
 
 interface TransfersSummaryStripProps {
-  transfers: MockTransfer[];
+  transfers: TransferItem[];
 }
 
 export default function TransfersSummaryStrip({ transfers }: TransfersSummaryStripProps) {
@@ -13,7 +13,7 @@ export default function TransfersSummaryStrip({ transfers }: TransfersSummaryStr
 
   const emAndamento = transfers.filter((t) => t.status === 'in_progress').length;
   const finalizados = transfers.filter((t) => t.status === 'completed').length;
-  const pendentes = transfers.filter((t) => t.status === 'scheduled').length;
+  const pendentes = transfers.filter((t) => t.status === 'confirmed').length;
   const motoristasAlocados = [...new Set(transfers.filter((t) => t.driver_id).map((t) => t.driver_id))].length;
   const veiculosEmUso = [...new Set(transfers.filter((t) => t.driver_id).map((t) => t.vehicle_plate).filter((p) => p !== '—'))].length;
 

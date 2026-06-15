@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { TransferStatus } from '@/mocks/admin-transfers';
+import type { BookingStatus } from '@/services/transfers';
 
 export interface TransfersFilters {
   search: string;
-  status: TransferStatus | 'all';
+  status: BookingStatus | 'all';
   driver: string;
   vehicleType: string;
   dateFrom: string;
@@ -17,13 +17,10 @@ interface TransfersFilterBarProps {
   filteredCount: number;
 }
 
-const statusTabs: { label: string; value: TransferStatus | 'all' }[] = [
+const statusTabs: { label: string; value: BookingStatus | 'all' }[] = [
   { label: 'Todos', value: 'all' },
-  { label: 'Agendado', value: 'scheduled' },
-  { label: 'Motorista Atribuído', value: 'driver_assigned' },
   { label: 'Confirmado', value: 'confirmed' },
   { label: 'Em Andamento', value: 'in_progress' },
-  { label: 'Atrasado', value: 'delayed' },
   { label: 'Finalizado', value: 'completed' },
   { label: 'Cancelado', value: 'cancelled' },
 ];

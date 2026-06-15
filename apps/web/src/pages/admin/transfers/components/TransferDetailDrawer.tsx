@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { MockTransfer } from '@/mocks/admin-transfers';
+import type { TransferItem } from '@/services/transfers';
 
 interface TransferDetailDrawerProps {
-  transfer: MockTransfer;
+  transfer: TransferItem;
   onClose: () => void;
 }
 
@@ -67,10 +67,9 @@ function OccupancyVisual({ current, max }: { current: number; max: number }) {
   );
 }
 
-function RouteMapPlaceholder({ transfer }: { transfer: MockTransfer }) {
+function RouteMapPlaceholder({ transfer }: { transfer: TransferItem }) {
   const progress = transfer.status === 'completed' ? 100 :
-                   transfer.status === 'in_progress' ? 50 :
-                   transfer.status === 'delayed' ? 60 : 0;
+                   transfer.status === 'in_progress' ? 50 : 0;
 
   return (
     <div className="space-y-4">
@@ -132,13 +131,13 @@ function RouteMapPlaceholder({ transfer }: { transfer: MockTransfer }) {
           </div>
         </div>
 
-        {/* Vehicle indicator (for in-progress / delayed) */}
-        {(transfer.status === 'in_progress' || transfer.status === 'delayed') && (
+        {/* Vehicle indicator (for in-progress) */}
+        {transfer.status === 'in_progress' && (
           <div
             className="absolute"
             style={{ left: `${20 + progress * 0.6}%`, top: `${70 - progress * 0.18}%`, transform: 'translate(-50%, -50%)' }}
           >
-            <div className={`w-7 h-7 flex items-center justify-center rounded-full border-2 border-white shadow-md ${transfer.status === 'delayed' ? 'bg-amber-500' : 'bg-teal-500'}`}>
+            <div className="w-7 h-7 flex items-center justify-center rounded-full border-2 border-white shadow-md bg-teal-500">
               <i className="ri-car-line text-white text-[10px]"></i>
             </div>
           </div>
@@ -344,18 +343,18 @@ export default function TransferDetailDrawer({ transfer, onClose }: TransferDeta
                   </div>
                 </div>
               </div>
-              {transfer.passengers.slice(1).map((p) => (
-                <div key={p.id} className="flex items-center gap-3 px-4 py-3 bg-white border border-sand-200 rounded-xl">
-                  <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-sand-100 flex-shrink-0">
-                    <i className="ri-user-line text-navy-400 text-xs"></i>
+              {/* Additional passengers not yet available from DB — showing count */}
+              {transfer.passenger_count > 1 && (
+                <div className="flex items-center gap-2.5 p-2 rounded-lg bg-stone-50">
+                  <div className="w-6 h-6 flex items-center justify-center rounded-full bg-stone-300 flex-shrink-0">
+                    <i className="ri-group-line text-white text-[9px]"></i>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-navy-800 truncate">{p.full_name}</p>
-                    {p.document && <p className="text-[10px] text-navy-400 mt-0.5">{p.document}</p>}
+                    <p className="text-xs font-medium text-navy-700">+{transfer.passenger_count - 1} passageiro(s)</p>
+                    <p className="text-[10px] text-navy-400">Detalhes disponíveis em breve</p>
                   </div>
-                  <span className="text-[10px] text-navy-400 font-medium flex-shrink-0">{ageGroupLabel[p.age_group]}</span>
                 </div>
-              ))}
+              )}
             </div>
             <OccupancyVisual current={transfer.passenger_count} max={transfer.capacity} />
           </div>
@@ -449,31 +448,17 @@ export default function TransferDetailDrawer({ transfer, onClose }: TransferDeta
             <h3 className="text-[10px] font-bold text-navy-400 uppercase tracking-widest mb-3 flex items-center gap-2">
               <i className="ri-time-line"></i> Timeline Operacional
             </h3>
-            <div>
-              {transfer.timeline.map((event, i) => {
-                const evTime = new Date(event.at);
-                const isLast = i === transfer.timeline.length - 1;
-                const iconCls = timelineIconColor[event.color] ?? timelineIconColor.stone;
-                return (
-                  <div key={event.id} className="flex gap-4">
-                    <div className="flex flex-col items-center flex-shrink-0" style={{ width: 28 }}>
-                      <div className={`w-6 h-6 flex items-center justify-center rounded-full border-2 border-white ring-1 ring-sand-200 flex-shrink-0 ${iconCls}`}>
-                        <i className={`${event.icon} text-[10px]`}></i>
-                      </div>
-                      {!isLast && <div className="w-px flex-1 bg-sand-200 my-1"></div>}
-                    </div>
-                    <div className="pb-5 flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-semibold text-navy-800">{event.label}</p>
-                        <p className="text-[10px] text-navy-400 whitespace-nowrap flex-shrink-0">
-                          {evTime.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · {evTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                      <p className="text-[11px] text-navy-500 mt-0.5 leading-relaxed">{event.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex items-center gap-3 py-3 px-3 bg-stone-50 rounded-xl">
+              <div className="w-6 h-6 flex items-center justify-center rounded-full bg-teal-100 flex-shrink-0">
+                <i className="ri-add-circle-line text-teal-600 text-[10px]"></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-navy-800">Reserva criada</p>
+                <p className="text-[11px] text-navy-500">Registrada no sistema</p>
+              </div>
+              <p className="text-[10px] text-navy-400 whitespace-nowrap flex-shrink-0">
+                {new Date(transfer.scheduled_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+              </p>
             </div>
           </div>
 

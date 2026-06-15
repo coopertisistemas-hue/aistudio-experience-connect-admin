@@ -1,20 +1,20 @@
-import type { MockTransfer } from '@/mocks/admin-transfers';
+import type { TransferItem } from '@/services/transfers';
 
-interface TransfersOperationalListProps {
-  transfers: MockTransfer[];
-  onSelect: (t: MockTransfer) => void;
+interface Props {
+  transfers: TransferItem[];
+  onSelect: (t: TransferItem) => void;
   selectedId?: string;
   loading?: boolean;
 }
 
 const statusConfig: Record<string, { label: string; dot: string; badge: string }> = {
-  scheduled:       { label: 'Agendado',            dot: 'bg-stone-400',  badge: 'bg-stone-100 text-stone-600 border-stone-200' },
-  driver_assigned: { label: 'Motorista Atribuído', dot: 'bg-navy-500',   badge: 'bg-navy-50 text-navy-700 border-navy-200' },
   confirmed:       { label: 'Confirmado',          dot: 'bg-teal-400',   badge: 'bg-teal-50 text-teal-700 border-teal-200' },
   in_progress:     { label: 'Em Andamento',        dot: 'bg-teal-500',   badge: 'bg-teal-50 text-teal-800 border-teal-300' },
   completed:       { label: 'Finalizado',          dot: 'bg-sand-400',   badge: 'bg-sand-100 text-navy-500 border-sand-200' },
-  delayed:         { label: 'Atrasado',            dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border-amber-300' },
   cancelled:       { label: 'Cancelado',           dot: 'bg-red-400',    badge: 'bg-red-50 text-red-600 border-red-200' },
+  no_show:         { label: 'No Show',             dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border-amber-300' },
+  refunded:        { label: 'Reembolsado',         dot: 'bg-purple-400', badge: 'bg-purple-50 text-purple-600 border-purple-200' },
+  draft:           { label: 'Rascunho',            dot: 'bg-stone-400',  badge: 'bg-stone-100 text-stone-600 border-stone-200' },
 };
 
 function OccupancyBar({ current, max }: { current: number; max: number }) {
@@ -48,7 +48,7 @@ export default function TransfersOperationalList({
   onSelect,
   selectedId,
   loading,
-}: TransfersOperationalListProps) {
+}: Props) {
   if (loading) {
     return (
       <div className="bg-white border border-sand-200 rounded-2xl overflow-hidden">
