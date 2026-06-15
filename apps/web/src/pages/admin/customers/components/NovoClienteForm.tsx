@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCreateCustomer } from '@/hooks/useCustomers';
 import type { CustomerPreference } from '@/services/customers';
-import { preferenceLabels, preferenceIcons } from '@/mocks/admin-customers';
+import { preferenceLabels, preferenceIcons } from '@/services/customers';
 
 interface NovoClienteFormProps {
   onClose: () => void;

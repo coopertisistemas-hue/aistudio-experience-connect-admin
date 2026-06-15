@@ -8,6 +8,18 @@ type UserTenantRow = Database['public']['Tables']['user_tenants']['Row'];
 
 export type CustomerPreference = 'aeroporto' | 'hotel' | 'executivo' | 'turismo' | 'familia' | 'acessibilidade' | 'ingles' | 'espanhol' | 'bagagem_extra';
 
+export const preferenceLabels: Record<CustomerPreference, string> = {
+  aeroporto: 'Aeroporto', hotel: 'Hotel', executivo: 'Executivo', turismo: 'Turismo',
+  familia: 'Família', acessibilidade: 'Acessibilidade', ingles: 'Inglês', espanhol: 'Espanhol',
+  bagagem_extra: 'Bagagem Extra',
+};
+
+export const preferenceIcons: Record<CustomerPreference, string> = {
+  aeroporto: 'ri-flight-takeoff-line', hotel: 'ri-hotel-line', executivo: 'ri-briefcase-4-line',
+  turismo: 'ri-compass-discover-line', familia: 'ri-parent-line', acessibilidade: 'ri-wheelchair-line',
+  ingles: 'ri-translate-2', espanhol: 'ri-translate-2', bagagem_extra: 'ri-luggage-cart-line',
+};
+
 export interface CustomerBooking {
   id: string;
   reference: string;
