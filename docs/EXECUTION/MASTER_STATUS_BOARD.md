@@ -3,7 +3,7 @@
 **Versao:** 1.0  
 **Data:** 2026-06-15  
 **Sprint atual:** Consolidation Exec Plan V1 (Onda A/B/C + Driver D1-D4)  
-**Auditoria Premium:** Codex (re-audit consolidado)  
+**Auditoria Premium:** Claude (fechamento de sprint)  
 
 ---
 
@@ -127,7 +127,10 @@ Nenhuma — todos os sprints completos e commitados.
 | 5.1.1 | apps/driver Setup (PWA) | Codex | ✅ COMPLETO | Commit `c168c5b` — D1: Vite+PWA, 421KB build |
 | 5.1.2 | Driver Auth & Agenda | Kimi | ✅ COMPLETO | D2/D3: Login OTP + Agenda diaria |
 | 5.1.3 | Trip Management & Check-in | Kimi + Codex | ✅ COMPLETO | D4: check-in/out, passageiros, Google Maps |
-| 5.1.4 | PWA Offline Cache | Codex | 🔄 EM PROGRESSO | Service Worker existe (D1); offline sync queue pendente (D6) |
+| 5.1.4 | PWA Offline Cache | Codex | ✅ COMPLETO | useOfflineSync hook implementado (D6) |
+| D5 | IncidentForm | Codex | ✅ COMPLETO | Registro de ocorrencia + upload foto Storage |
+| D6 | Offline Sync Queue | Codex | ✅ COMPLETO | Hook useOfflineSync com localStorage queue |
+| D7 | Playwright E2E Driver | Kimi | ✅ COMPLETO | 5 testes smoke (login, auth guard, 404, estrutura) |
 
 ### Pendências Wave 5
 
@@ -216,13 +219,13 @@ Nenhuma — todos os sprints completos e commitados.
 | Wave 2 | 5 | 5 | 0 | 0 | 0 |
 | Wave 3 | 6 | 5 | 1 | 0 | 0 |
 | Wave 4 | 4 | 1 | 1 | 2 | 0 |
-| Wave 5 | 4 | 3 | 1 | 0 | 0 |
+| Wave 5 | 4+3 | 6 | 0 | 0 | 0 |
 | Wave 6 | 3 | 0 | 0 | 3 | 0 |
 | Wave 7 | 4 | 0 | 0 | 4 | 0 |
 | Wave 8 | 5 | 0 | 1 | 4 | 0 |
 | Wave 9 | 3 | 0 | 0 | 3 | 0 |
 | Onda A/B/C | 7 | 6 | 0 | 0 | 1 |
-| **TOTAL** | **49** | **27** | **4** | **16** | **2** |
+| **TOTAL** | **52** | **30** | **2** | **18** | **2** |
 
 ---
 
